@@ -9,3 +9,6 @@ https://docs.google.com/spreadsheets/d/1p8vujcTDqnsbsG0XPGc3VQEsrvbbUbXXhNcpMoxS
 
 # Group Charter
 https://docs.google.com/document/d/1F_BbxWogCVSSup0Pme5d-XIZ0jbCg39yP4M3IWzPQBA/edit?tab=t.0
+
+# Kanban Board
+https://cs540group3.atlassian.net/jira/software/projects/SCRUM/boards/1
