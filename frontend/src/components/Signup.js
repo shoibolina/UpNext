@@ -9,7 +9,7 @@ function Signup({ onSignupSuccess, onSwitchToLogin }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://127.0.0.1:8000/register', {
+            const response = await fetch('http://127.0.0.1:8000/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password }),
@@ -17,16 +17,16 @@ function Signup({ onSignupSuccess, onSwitchToLogin }) {
 
             const data = await response.json();
             if (response.ok) {
-                onSignupSuccess(data.access_token, data.username); // Assuming backend returns username and token
+                onSignupSuccess(data.access_token, data.username);
             } else {
-                // eslint-disable-next-line no-alert
-                alert(data.error || 'Signup failed. Please check your details.');
+
+                alert(data.error || 'Registeration Failed');
             }
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Error during signup:', error);
-            // eslint-disable-next-line no-alert
-            alert('Signup failed. Please try again later.');
+
+            console.error('Error:', error);
+
+            alert('Signup failed.');
         }
     };
 
