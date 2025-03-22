@@ -1,73 +1,78 @@
-
 import React, { useState } from 'react';
-import axios from 'axios';
+import PropTypes from 'prop-types';
 
-const Register = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: ''
-    });
-
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
+function Signup({ onSignupSuccess, onSwitchToLogin }) {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
-
         try {
-            const response = await axios.post('http://localhost:5000/api/register', {
-                name: formData.name,
-                email: formData.email
+            const response = await fetch('http://127.0.0.1:8000/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password }),
             });
-            setSuccess('Registration successful!');
-        } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+
+            const data = await response.json();
+            if (response.ok) {
+                onSignupSuccess(data.access_token, data.username); // Assuming backend returns username and token
+            } else {
+                // eslint-disable-next-line no-alert
+                alert(data.error || 'Signup failed. Please check your details.');
+            }
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error during signup:', error);
+            // eslint-disable-next-line no-alert
+            alert('Signup failed. Please try again later.');
         }
     };
 
     return (
-        <div className="max-w-md mx-auto mt-10 p-6 border rounded shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Register</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+            <h2>Sign Up</h2>
+            <form onSubmit={handleSubmit}>
                 <input
                     type="text"
-                    name="name"
                     placeholder="Full Name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full border p-2 rounded"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     required
                 />
+                <br />
                 <input
                     type="email"
-                    name="email"
                     placeholder="Email Address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full border p-2 rounded"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                 />
-                {error && <p className="text-red-500">{error}</p>}
-                {success && <p className="text-green-500">{success}</p>}
-                <button
-                    type="submit"
-                    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-                >
-                    Register
-                </button>
+                <br />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
+                <br />
+                <button type="submit">Sign Up</button>
             </form>
+            <p>
+                Already have an account?
+                {' '}
+                <button type="button" onClick={onSwitchToLogin}>Log In</button>
+            </p>
         </div>
     );
+}
+
+Signup.propTypes = {
+    onSignupSuccess: PropTypes.func.isRequired,
+    onSwitchToLogin: PropTypes.func.isRequired,
 };
 
-export default Register;
+export default Signup;
+
