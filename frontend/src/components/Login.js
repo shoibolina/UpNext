@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 
 function Login({ onLoginSuccess, onSwitchToSignup }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,7 +59,7 @@ function Login({ onLoginSuccess, onSwitchToSignup }) {
       <p>
         Don&apos;t have an account?
         {' '}
-        <button type="button" onClick={onSwitchToSignup}>Sign Up</button>
+        <button type="button" onClick={() => navigate('/signup')}>Sign Up</button>
       </p>
     </div>
   );
