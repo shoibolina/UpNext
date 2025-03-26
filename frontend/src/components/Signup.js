@@ -9,12 +9,11 @@ function Signup({ onSignupSuccess, onSwitchToLogin }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://127.0.0.1:8000/signup', {
+            const response = await fetch('http://127.0.0.1:8000/api/register/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password }),
-            });
-
+            });            
             const data = await response.json();
             if (response.ok) {
                 onSignupSuccess(data.access_token, data.username);

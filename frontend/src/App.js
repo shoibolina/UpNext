@@ -1,41 +1,43 @@
-import React from 'react';
-
-
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
 import Login from './components/Login';
 import Home from './components/Home';
-import Signup from './components/Signup'
+import Signup from './components/Signup';
+import LogoutButton from './components/logoutbutton';
+import authService from './services/auth';
+
 import './App.css';
 
 function App() {
-
   const [token, setToken] = useState(null);
 
-  const handleLoginSuccess = (accessToken) => {
+  useEffect(() => {
+    const storedToken = authService.getToken();
+    if (storedToken) setToken(storedToken);
+  }, []);
+
+  const handleLoginSuccess = (accessToken, username) => {
+    authService.login(accessToken, username);
     setToken(accessToken);
   };
 
-  const handleSignupSuccess = (accessToken) => {
+  const handleSignupSuccess = (accessToken, username) => {
+    authService.login(accessToken, username);
     setToken(accessToken);
-  }
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    setToken(null);
+  };
 
   return (
     <Router>
       <div className="App">
+        {token && <LogoutButton onLogout={handleLogout} />}
         <Routes>
-          {/* Signup Route*/}
-          <Route path="/Signup" element={<Signup />} />
-          {/*<Route path="/signup" element={token ? (
-              <Navigate to="/" replace />) : (
-              <Signup onSignupSuccess={handleSignupSuccess} onSwitchToLogin={handleSwitchToLogin} />)}/>*/}
-
-
-
-          {/* Login Route */}
-          <Route path="/login" element={<Login />} />
-          {/* uncomment code block below to make it mandatory to login */}
-          {/* <Route
+          <Route
             path="/login"
             element={
               token ? (
@@ -45,13 +47,24 @@ function App() {
               )
             }
           />
+
+          <Route
+            path="/Signup"
+            element={
+              token ? (
+                <Navigate to="/" replace />
+              ) : (
+                <Signup onSignupSuccess={handleSignupSuccess} />
+              )
+            }
+          />
+
           <Route
             path="/"
-            element={token ? <Home /> : <Navigate to="/login" replace />}
-          /> */}
-          <Route path="/" element={<Home />} />
-
-
+            element={
+              token ? <Home /> : <Navigate to="/login" replace />
+            }
+          />
         </Routes>
       </div>
     </Router>
