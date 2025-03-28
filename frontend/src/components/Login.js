@@ -6,7 +6,22 @@ function Login({ onLoginSuccess, onSwitchToSignup }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const [errors, setErrors] = useState ({});
 
+  const validateInputs = () => {
+    const newErrors = {};
+    
+    if (!username.trim ()) {
+      newErrors.username = 'Username is required.';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required.';
+    }
+
+    setErrors (newErrors);
+    return Object.keys (newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
