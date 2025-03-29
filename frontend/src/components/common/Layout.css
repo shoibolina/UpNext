@@ -1,0 +1,18 @@
+
+.site-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding-top: 80px; 
+    padding-bottom: 40px;
+  }
+  
+  @media (max-width: 768px) {
+    .main-content {
+      padding-top: 150px;
+    }
+  }

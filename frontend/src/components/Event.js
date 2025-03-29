@@ -1,5 +1,5 @@
 import React from 'react';
-import './Event.css';
+
 
 function Event({ event }) {
     return (
