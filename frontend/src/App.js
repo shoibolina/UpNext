@@ -1,11 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+/*import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';*/
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import Login from './components/Login';
 import Home from './components/Home';
+import Profile from './components/Profile';
+import Search from './components/Search';
+
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/search" element={<Search />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+
+
+{/*import Login from './components/Login';
 import Signup from './components/Signup';
 import LogoutButton from './components/logoutbutton';
 import authService from './services/auth';
+
 
 import './App.css';
 
@@ -70,5 +91,10 @@ function App() {
     </Router>
   );
 }
-
+  
 export default App;
+
+*/}
+
+
+

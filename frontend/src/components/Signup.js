@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 
 function Signup({ onSignupSuccess, onSwitchToLogin }) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/register/', {
+            const response = await fetch('http://127.0.0.1:8000/Signup/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password }),
-            });            
+            });
             const data = await response.json();
             if (response.ok) {
                 onSignupSuccess(data.access_token, data.username);
@@ -62,7 +64,7 @@ function Signup({ onSignupSuccess, onSwitchToLogin }) {
             <p>
                 Already have an account?
                 {' '}
-                <button type="button" onClick={onSwitchToLogin}>Log In</button>
+                <button type="button" onClick={() => navigate('/login')}>Log In</button>
             </p>
         </div>
     );
