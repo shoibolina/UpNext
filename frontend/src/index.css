@@ -1,13 +1,195 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Add the following to your App.css file */
+
+/* Event and Venue Common Styles */
+.events-container,
+.venues-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.events-container h1,
+.venues-container h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #3f51b5;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  flex: 1;
+}
+
+.filter-group label {
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.events-grid,
+.venues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.event-card,
+.venue-card {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.event-card:hover,
+.venue-card:hover {
+  transform: translateY(-5px);
+}
+
+.event-image,
+.venue-image {
+  height: 200px;
+  overflow: hidden;
+}
+
+.event-image img,
+.venue-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.event-info,
+.venue-info {
+  padding: 20px;
+}
+
+.event-info h3,
+.venue-info h3 {
+  margin-bottom: 15px;
+  color: #3f51b5;
+}
+
+.event-details,
+.venue-details {
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.event-details > div,
+.venue-details > div {
+  margin-bottom: 5px;
+}
+
+.label {
+  font-weight: 600;
+  margin-right: 5px;
+  color: #546e7a;
+}
+
+.event-description,
+.venue-description {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #616161;
+}
+
+.event-actions,
+.venue-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.event-actions button,
+.venue-actions button {
+  flex: 1;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.btn-view-details {
+  background-color: #607d8b;
+}
+
+.btn-attend,
+.btn-book {
+  background-color: #4caf50;
+}
+
+.btn-cancel {
+  background-color: #f44336;
+}
+
+.category-tag {
+  display: inline-block;
+  background-color: #e0e0e0;
+  color: #616161;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+.venue-categories {
+  margin-bottom: 15px;
+}
+
+.create-event-button,
+.create-venue-button {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.btn-create-event,
+.btn-create-venue {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #3f51b5;
+}
+
+.no-events,
+.no-venues {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 30px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .events-grid,
+  .venues-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters {
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
 }

@@ -1,0 +1,208 @@
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 170px); 
+    padding: 20px;
+  }
+  
+  .auth-form {
+    width: 100%;
+    max-width: 500px; 
+    padding: 30px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .auth-form h2 {
+    text-align: center;
+    margin-bottom: 24px;
+    color: #3f51b5;
+  }
+  
+  .auth-form h3 {
+    margin-top: 20px;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+  }
+  
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  
+  .form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 12px;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+  }
+  
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+  }
+  
+  .auth-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .auth-button:hover {
+    background-color: #303f9f;
+  }
+  
+  .auth-button:disabled {
+    background-color: #b0bec5;
+    cursor: not-allowed;
+  }
+  
+  .error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  
+  .btn-secondary {
+    padding: 12px;
+    background-color: white;
+    color: #3f51b5;
+    border: 1px solid #3f51b5;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .checkbox-container {
+    margin-top: 10px;
+  }
+  
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .checkbox-label input {
+    width: auto;
+    margin-right: 10px;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .button-group button {
+    flex: 1;
+  }
+  
+  .login-link {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .login-link a {
+    color: #3f51b5;
+    text-decoration: none;
+  }
+  
+  .login-link a:hover {
+    text-decoration: underline;
+  }
+  
+  .form-steps {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .step {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 10px;
+    color: #757575;
+    font-weight: bold;
+  }
+  
+  .step.active {
+    background-color: #3f51b5;
+    color: white;
+  }
+  
+  .step-line {
+    height: 2px;
+    background-color: #e0e0e0;
+    flex-grow: 1;
+    margin-top: 15px;
+  }
+  
+  @media (max-width: 576px) {
+    .auth-form {
+      padding: 20px;
+    }
+    
+    .form-row {
+      flex-direction: column;
+      gap: 0;
+    }
+    
+    .button-group {
+      flex-direction: column;
+    }
+  }
