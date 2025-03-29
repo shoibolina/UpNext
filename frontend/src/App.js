@@ -11,6 +11,7 @@ import EventDetail from './components/events/EventDetail';
 import EventEdit from './components/events/EventEdit';
 import CreateEvent from './components/events/CreateEvent';
 import authService from './services/authService';
+
 import './App.css';
 
 // Protected route component
@@ -26,87 +27,87 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
             <Layout>
               <Home />
             </Layout>
-          } 
+          }
         />
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             <Layout>
               <Login />
             </Layout>
-          } 
+          }
         />
-        <Route 
-          path="/signup" 
+        <Route
+          path="/signup"
           element={
             <Layout>
               <Signup />
             </Layout>
-          } 
+          }
         />
-        <Route 
-          path="/events" 
+        <Route
+          path="/events"
           element={
             <Layout>
               <Events />
             </Layout>
-          } 
+          }
         />
         {/* Event detail route */}
-        <Route 
-          path="/events/:id" 
+        <Route
+          path="/events/:id"
           element={
             <Layout>
               <EventDetail />
             </Layout>
-          } 
+          }
         />
         {/* Add event edit route */}
-        <Route 
-          path="/events/:id/edit" 
+        <Route
+          path="/events/:id/edit"
           element={
             <ProtectedRoute>
               <Layout>
                 <EventEdit />
               </Layout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <Layout>
                 <Dashboard />
               </Layout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/profile" 
+        <Route
+          path="/profile"
           element={
             <ProtectedRoute>
               <Layout>
                 <Profile />
               </Layout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/create-event" 
+        <Route
+          path="/create-event"
           element={
             <ProtectedRoute>
               <Layout>
                 <CreateEvent />
               </Layout>
             </ProtectedRoute>
-          } 
+          }
         />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
@@ -115,4 +116,5 @@ function App() {
   );
 }
 
-export default App;
+
+export default App
