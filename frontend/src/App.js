@@ -11,7 +11,6 @@ import EventDetail from './components/events/EventDetail';
 import EventEdit from './components/events/EventEdit';
 import CreateEvent from './components/events/CreateEvent';
 import authService from './services/authService';
-import Search from './components/Search';
 
 import './App.css';
 
@@ -96,16 +95,6 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Profile />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/search"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <Search />
               </Layout>
             </ProtectedRoute>
           }
