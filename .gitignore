@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.env
+.env
+
+# Django
+db.sqlite3
+*.log
+
+# OS
+.DS_Store
+
+# Virtualenv
+venv/
+.env/
+*.egg-info/
+
+# VSCode or PyCharm (optional)
+.vscode/
+.idea/

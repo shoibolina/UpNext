@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
-
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -71,12 +71,12 @@ WSGI_APPLICATION = "upnext.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "upnext",
-        "USER": "********************",  # Replace with your database user
-        "PASSWORD": "**********",  # Replace with your database password
-        "HOST": "localhost",
-        "PORT": "5432",
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'), # Replace with your database user
+        'PASSWORD': config('DB_PASSWORD'), # Replace with your database password
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
 
