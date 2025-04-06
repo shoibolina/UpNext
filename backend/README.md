@@ -37,6 +37,11 @@ UpNext is a comprehensive web-based platform designed to connect community membe
 - Venue booking system with pricing calculation
 - Advanced venue search and filtering
 
+### Tickets App
+
+- Ticket: Represents event tickets issued to attendees
+- TicketVerification: Tracks ticket verification details
+
 ## Backend Architecture
 
 ### Tech Stack
@@ -72,6 +77,22 @@ UpNext is a comprehensive web-based platform designed to connect community membe
 - `VenueImage`: Images for venues
 - `VenueBooking`: Tracks venue bookings
 - `VenueReview`: Reviews for venues
+
+### Tickets
+
+- `GET` /api/v1/tickets/ - List all tickets (filtered by user permissions)
+- `GET` /api/v1/tickets/{id}/ - Retrieve a ticket
+- `GET` /api/v1/tickets/my_tickets/ - List tickets for the current user
+- `POST` /api/v1/tickets/generate_for_event/ - Generate a ticket for an event
+- `POST` /api/v1/tickets/{id}/cancel/ - Cancel a ticket
+- `GET` /api/v1/events/{id}/tickets/ - List tickets for a specific event
+
+### Ticket Verification
+
+- `GET` /api/v1/ticket-verifications/ - List all verifications (filtered by user permissions)
+- `POST` /api/v1/ticket-verifications/ - Verify a ticket by ticket number
+- `POST` /api/v1/ticket-verifications/verify_by_qr/ - Verify a ticket using QR code data
+
 
 ## Setup Instructions
 
