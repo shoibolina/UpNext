@@ -148,6 +148,17 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
 }
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'webmaster@localhost'
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',  # React dev server
+]
+
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to access the CSRF cookie
+CSRF_COOKIE_SECURE = False  # Make this True in production when using HTTPS
+CORS_ALLOW_CREDENTIALS = True
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True  # In production, specify the allowed origins
