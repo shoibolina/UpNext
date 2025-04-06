@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import * as eventServices from '../../services/eventServices';
+import * as ticketService from '../../services/ticketService';
 import authService from '../../services/authService';
+import Ticket from '../tickets/Ticket';
 import './EventDetail.css';
 
 function EventDetail() {
@@ -13,6 +15,10 @@ function EventDetail() {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [ticket, setTicket] = useState(null);
+  const [ticketLoading, setTicketLoading] = useState(false);
+  const [showTicket, setShowTicket] = useState(false);
+  const [ticketError, setTicketError] = useState(null);
 
   // Check authentication status
   useEffect(() => {
@@ -39,8 +45,26 @@ function EventDetail() {
     }
   }, [id]);
 
+  // Fetch ticket if user is registered
+  useEffect(() => {
+    const fetchTicket = async () => {
+      if (isAuthenticated && id && event?.is_attending) {
+        try {
+          setTicketLoading(true);
+          const ticketData = await ticketService.getMyTicketForEvent(id);
+          setTicket(ticketData);
+        } catch (err) {
+          console.log('No ticket found or error fetching ticket');
+        } finally {
+          setTicketLoading(false);
+        }
+      }
+    };
+
+    fetchTicket();
+  }, [id, isAuthenticated, event?.is_attending]);
+
   const handleAttend = async () => {
-    // Redirect to login if not authenticated
     if (!isAuthenticated) {
       navigate('/login', { state: { from: `/events/${id}` } });
       return;
@@ -48,15 +72,22 @@ function EventDetail() {
     
     try {
       setSubmitting(true);
-      await eventServices.attendEvent(id);
+      setTicketError(null);
       
-      // Refresh event data
+      const response = await ticketService.generateTicket(id);
+      
       const updatedEvent = await eventServices.getEventById(id);
       setEvent(updatedEvent);
+      
+      if (response.ticket) {
+        setTicket(response.ticket);
+        setShowTicket(true);
+      }
       
       alert('You have successfully registered for this event!');
     } catch (err) {
       console.error('Error attending event:', err);
+      setTicketError(err.message || 'Failed to register for event');
       alert(err.message || 'Failed to register for event. Please try again.');
     } finally {
       setSubmitting(false);
@@ -68,9 +99,10 @@ function EventDetail() {
       setSubmitting(true);
       await eventServices.cancelAttendance(id);
       
-      // Refresh event data
       const updatedEvent = await eventServices.getEventById(id);
       setEvent(updatedEvent);
+      setTicket(null);
+      setShowTicket(false);
       
       alert('Your registration has been cancelled.');
     } catch (err) {
@@ -84,7 +116,6 @@ function EventDetail() {
   const handleAddComment = async (e) => {
     e.preventDefault();
     
-    // Redirect to login if not authenticated
     if (!isAuthenticated) {
       navigate('/login', { state: { from: `/events/${id}` } });
       return;
@@ -96,7 +127,6 @@ function EventDetail() {
       setSubmitting(true);
       await eventServices.addEventComment(id, comment);
       
-      // Refresh event data to show new comment
       const updatedEvent = await eventServices.getEventById(id);
       setEvent(updatedEvent);
       setComment('');
@@ -108,7 +138,18 @@ function EventDetail() {
     }
   };
 
-  // Format date for display
+  const handleViewTicket = () => {
+    setShowTicket(true);
+  };
+
+  const handleCloseTicket = () => {
+    setShowTicket(false);
+  };
+
+  const handleVerifyTickets = () => {
+    navigate(`/ticket-verification/${id}`);
+  };
+
   const formatEventDate = (date, time) => {
     const dateObj = new Date(`${date}T${time}`);
     return dateObj.toLocaleDateString('en-US', {
@@ -120,6 +161,9 @@ function EventDetail() {
       minute: '2-digit'
     });
   };
+
+  // Use the synchronous version to get the current user
+  const isOrganizer = event?.organizer && authService.getCurrentUserSync()?.id === event.organizer.id;
 
   if (loading) {
     return <div className="loading">Loading event details...</div>;
@@ -145,6 +189,15 @@ function EventDetail() {
 
   return (
     <div className="event-detail-container">
+      {showTicket && ticket && (
+        <div className="ticket-modal">
+          <div className="ticket-modal-content">
+            <button className="close-button" onClick={handleCloseTicket}>&times;</button>
+            <Ticket ticket={ticket} event={event} />
+          </div>
+        </div>
+      )}
+
       <div className="event-detail-header">
         <h1>{event.title}</h1>
         <div className="event-meta">
@@ -188,7 +241,9 @@ function EventDetail() {
                   {event.comments.map(comment => (
                     <div key={comment.id} className="comment">
                       <div className="comment-header">
-                        <span className="comment-author">{comment.user?.username || comment.user?.email || 'Anonymous'}</span>
+                        <span className="comment-author">
+                          {comment.user?.username || comment.user?.email || 'Anonymous'}
+                        </span>
                         <span className="comment-date">
                           {new Date(comment.created_at).toLocaleDateString()}
                         </span>
@@ -223,19 +278,39 @@ function EventDetail() {
         <div className="event-sidebar">
           <div className="event-actions">
             {isAuthenticated ? (
-              event.is_attending ? (
-                <button 
-                  onClick={handleCancelAttendance} 
-                  className="btn-secondary"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Processing...' : 'Cancel Registration'}
-                </button>
+              isOrganizer ? (
+                <>
+                  <Link to={`/events/${id}/edit`} className="btn-secondary">
+                    Edit Event
+                  </Link>
+                  <button className="btn-primary" onClick={handleVerifyTickets}>
+                    Verify Tickets
+                  </button>
+                </>
+              ) : event.is_attending ? (
+                <>
+                  <button 
+                    onClick={handleCancelAttendance} 
+                    className="btn-secondary"
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Processing...' : 'Cancel Registration'}
+                  </button>
+                  {ticket && (
+                    <button 
+                      className="btn-primary" 
+                      onClick={handleViewTicket}
+                      disabled={ticketLoading}
+                    >
+                      {ticketLoading ? 'Loading...' : 'View Ticket'}
+                    </button>
+                  )}
+                </>
               ) : (
                 <button 
                   onClick={handleAttend} 
                   className="btn-primary"
-                  disabled={submitting}
+                  disabled={submitting || event.status !== 'published'}
                 >
                   {submitting ? 'Processing...' : 'Register for Event'}
                 </button>
@@ -245,13 +320,9 @@ function EventDetail() {
                 Login to Register
               </Link>
             )}
-
-            {isAuthenticated && event.organizer && event.organizer.id === authService.getCurrentUser()?.id && (
-              <Link to={`/events/${id}/edit`} className="btn-secondary">
-                Edit Event
-              </Link>
-            )}
           </div>
+
+          {ticketError && <div className="ticket-error-message">{ticketError}</div>}
 
           <div className="event-details-card">
             <div className="detail-item">

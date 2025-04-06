@@ -18,9 +18,11 @@ const authService = {
         throw new Error(errorMsg);
       }
       
-      // Store token in localStorage
       if (data.access) {
         localStorage.setItem('token', data.access);
+      }
+      if (data.refresh) {
+        localStorage.setItem('refreshToken', data.refresh);
       }
       
       return data;
@@ -47,9 +49,11 @@ const authService = {
         throw new Error(errorMsg);
       }
       
-      // Store token in localStorage
       if (data.access) {
         localStorage.setItem('token', data.access);
+      }
+      if (data.refresh) {
+        localStorage.setItem('refreshToken', data.refresh);
       }
       
       // Fetch user data
@@ -64,6 +68,8 @@ const authService = {
       }
       
       const userData = await userResponse.json();
+      // Cache the user data for synchronous access
+      localStorage.setItem('cachedUser', JSON.stringify(userData));
       
       return {
         token: data.access,
@@ -78,6 +84,69 @@ const authService = {
   
   logout: () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('cachedUser');
+  },
+  
+  refreshToken: async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+      
+      const response = await fetch(`${API_URL}/api/token/refresh/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+      
+      if (!response.ok) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        throw new Error('Failed to refresh token');
+      }
+      
+      const data = await response.json();
+      
+      if (data.access) {
+        localStorage.setItem('token', data.access);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      return false;
+    }
+  },
+  
+  refreshTokenIfNeeded: async () => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      return false;
+    }
+    
+    try {
+      const response = await fetch(`${API_URL}/api/v1/users/me/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.status === 401) {
+        return await authService.refreshToken();
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking token:', error);
+      return await authService.refreshToken();
+    }
   },
   
   getCurrentUser: async () => {
@@ -88,11 +157,26 @@ const authService = {
     }
     
     try {
+      await authService.refreshTokenIfNeeded();
+      
+      const freshToken = localStorage.getItem('token');
+      
+      if (!freshToken) {
+        return null;
+      }
+      
       const response = await fetch(`${API_URL}/api/v1/users/me/`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${freshToken}`
         }
       });
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('cachedUser');
+        return null;
+      }
       
       if (!response.ok) {
         throw new Error('Failed to fetch user data');
@@ -106,6 +190,19 @@ const authService = {
     }
   },
   
+  // Synchronous version for quick access
+  getCurrentUserSync: () => {
+    const cachedUser = localStorage.getItem('cachedUser');
+    if (cachedUser) {
+      try {
+        return JSON.parse(cachedUser);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  },
+  
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
   },
@@ -116,6 +213,8 @@ const authService = {
   
   updateProfile: async (userData) => {
     try {
+      await authService.refreshTokenIfNeeded();
+      
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Not authenticated');
@@ -135,7 +234,11 @@ const authService = {
         throw new Error(errorData.detail || 'Failed to update profile');
       }
       
-      return await response.json();
+      const updatedUser = await response.json();
+      
+      localStorage.setItem('cachedUser', JSON.stringify(updatedUser));
+      
+      return updatedUser;
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
