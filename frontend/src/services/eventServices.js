@@ -2,6 +2,62 @@ import authService from './authService';
 
 const API_URL = 'http://127.0.0.1:8000';
 
+// Helper function to handle API requests with token refresh
+const apiRequest = async (url, options = {}) => {
+  try {
+    // Try to refresh token if needed
+    await authService.refreshTokenIfNeeded();
+    
+    // Get fresh token
+    const token = authService.getToken();
+    
+    // Set authorization header if token exists
+    const headers = {
+      ...options.headers,
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+    
+    // Make the request
+    const response = await fetch(url, {
+      ...options,
+      headers
+    });
+    
+    // Handle 401 errors after token refresh attempt
+    if (response.status === 401) {
+      // If we're still getting 401 after refresh, user needs to login
+      authService.logout();
+      throw new Error('Your session has expired. Please log in again.');
+    }
+    
+    // Handle other errors
+    if (!response.ok) {
+      const contentType = response.headers.get('content-type');
+      let errorData;
+      
+      if (contentType && contentType.includes('application/json')) {
+        errorData = await response.json();
+      } else {
+        errorData = { detail: await response.text() };
+      }
+      
+      const errorMsg = errorData.detail || 'API request failed';
+      throw new Error(errorMsg);
+    }
+    
+    // Check content type
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    }
+    
+    return await response.text();
+  } catch (error) {
+    console.error(`API request failed: ${url}`, error);
+    throw error;
+  }
+};
+
 // Get all events (with optional filters)
 export const getEvents = async (filters = {}) => {
   try {
@@ -14,20 +70,19 @@ export const getEvents = async (filters = {}) => {
       }
     });
     
-    const token = authService.getToken();
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    
-    const response = await fetch(
-      `${API_URL}/api/v1/events/?${queryParams.toString()}`, 
-      { headers }
+    const data = await apiRequest(
+      `${API_URL}/api/v1/events/?${queryParams.toString()}`
     );
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to fetch events');
+    // Handle both paginated and non-paginated responses
+    if (data.results && Array.isArray(data.results)) {
+      return data.results; // Return just the array of events
+    } else if (Array.isArray(data)) {
+      return data; // Already an array, return it directly
+    } else {
+      console.warn('API returned unexpected format for events', data);
+      return []; // Return empty array as fallback
     }
-    
-    return await response.json();
   } catch (error) {
     console.error('Error fetching events:', error);
     throw error;
@@ -37,20 +92,7 @@ export const getEvents = async (filters = {}) => {
 // Get a single event by ID
 export const getEventById = async (eventId) => {
   try {
-    const token = authService.getToken();
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    
-    const response = await fetch(
-      `${API_URL}/api/v1/events/${eventId}/`, 
-      { headers }
-    );
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to fetch event');
-    }
-    
-    return await response.json();
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/`);
   } catch (error) {
     console.error('Error fetching event:', error);
     throw error;
@@ -60,54 +102,15 @@ export const getEventById = async (eventId) => {
 // Create a new event
 export const createEvent = async (eventData) => {
   try {
-    const token = authService.getToken();
-    if (!token) {
+    if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to create an event');
     }
     
-    const response = await fetch(`${API_URL}/api/v1/events/`, {
+    return await apiRequest(`${API_URL}/api/v1/events/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(eventData)
     });
-    
-    // First try to parse the response as JSON
-    const contentType = response.headers.get('content-type');
-    let data;
-    
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
-    } else {
-      // If not JSON, get text
-      data = { detail: await response.text() };
-    }
-    
-    if (!response.ok) {
-      // Create a meaningful error message from the response data
-      let errorMessage = 'Failed to create event';
-      
-      if (data.detail) {
-        errorMessage = data.detail;
-      } else if (typeof data === 'object') {
-        // Collect all error messages from the response
-        const errors = [];
-        for (const key in data) {
-          if (Array.isArray(data[key])) {
-            errors.push(`${key}: ${data[key].join(', ')}`);
-          } else {
-            errors.push(`${key}: ${data[key]}`);
-          }
-        }
-        errorMessage = errors.join('; ');
-      }
-      
-      throw new Error(errorMessage);
-    }
-    
-    return data;
   } catch (error) {
     console.error('Error creating event:', error);
     throw error;
@@ -117,26 +120,15 @@ export const createEvent = async (eventData) => {
 // Update an existing event
 export const updateEvent = async (eventId, eventData) => {
   try {
-    const token = authService.getToken();
-    if (!token) {
+    if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to update an event');
     }
     
-    const response = await fetch(`${API_URL}/api/v1/events/${eventId}/`, {
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(eventData)
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to update event');
-    }
-    
-    return await response.json();
   } catch (error) {
     console.error('Error updating event:', error);
     throw error;
@@ -146,22 +138,13 @@ export const updateEvent = async (eventId, eventData) => {
 // Delete an event
 export const deleteEvent = async (eventId) => {
   try {
-    const token = authService.getToken();
-    if (!token) {
+    if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to delete an event');
     }
     
-    const response = await fetch(`${API_URL}/api/v1/events/${eventId}/`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    await apiRequest(`${API_URL}/api/v1/events/${eventId}/`, {
+      method: 'DELETE'
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to delete event');
-    }
     
     return true;
   } catch (error) {
@@ -173,27 +156,34 @@ export const deleteEvent = async (eventId) => {
 // Register for an event
 export const attendEvent = async (eventId) => {
   try {
-    const token = authService.getToken();
-    if (!token) {
+    if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to register for an event');
     }
     
-    const response = await fetch(`${API_URL}/api/v1/events/${eventId}/attend/`, {
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/attend/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Content-Type': 'application/json' }
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to register for event');
-    }
-    
-    return await response.json();
   } catch (error) {
     console.error('Error registering for event:', error);
+    throw error;
+  }
+};
+
+// Register for an event with ticket
+export const registerWithTicket = async (eventId, ticketType = 'standard') => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to register for an event');
+    }
+    
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/register_with_ticket/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticket_type: ticketType })
+    });
+  } catch (error) {
+    console.error('Error registering for event with ticket:', error);
     throw error;
   }
 };
@@ -201,25 +191,14 @@ export const attendEvent = async (eventId) => {
 // Cancel registration for an event
 export const cancelAttendance = async (eventId) => {
   try {
-    const token = authService.getToken();
-    if (!token) {
+    if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to cancel registration');
     }
     
-    const response = await fetch(`${API_URL}/api/v1/events/${eventId}/cancel/`, {
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/cancel/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Content-Type': 'application/json' }
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to cancel registration');
-    }
-    
-    return await response.json();
   } catch (error) {
     console.error('Error cancelling registration:', error);
     throw error;
@@ -229,26 +208,15 @@ export const cancelAttendance = async (eventId) => {
 // Add a comment to an event
 export const addEventComment = async (eventId, content) => {
   try {
-    const token = authService.getToken();
-    if (!token) {
+    if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to add a comment');
     }
     
-    const response = await fetch(`${API_URL}/api/v1/events/${eventId}/comment/`, {
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/comment/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content })
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to add comment');
-    }
-    
-    return await response.json();
   } catch (error) {
     console.error('Error adding comment:', error);
     throw error;
@@ -258,23 +226,9 @@ export const addEventComment = async (eventId, content) => {
 // Get all event categories
 export const getEventCategories = async () => {
   try {
-    const token = authService.getToken();
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    
-    const response = await fetch(
-      `${API_URL}/api/v1/event-categories/`, 
-      { headers }
-    );
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to fetch categories');
-    }
-    
-    return await response.json();
+    return await apiRequest(`${API_URL}/api/v1/event-categories/`);
   } catch (error) {
     console.error('Error fetching categories:', error);
     throw error;
   }
 };
-
