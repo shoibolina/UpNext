@@ -11,6 +11,7 @@ import EventDetail from './components/events/EventDetail';
 import EventEdit from './components/events/EventEdit';
 import CreateEvent from './components/events/CreateEvent';
 import authService from './services/authService';
+import ForgotPassword from './components/forgotpassword/forgotpassword';
 
 import './App.css';
 
@@ -107,6 +108,14 @@ function App() {
                 <CreateEvent />
               </Layout>
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <layout>
+              <ForgotPassword />
+            </layout>
           }
         />
         {/* Add more routes as needed */}
