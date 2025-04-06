@@ -31,8 +31,14 @@ function Dashboard() {
           eventServices.getEvents()
         ]);
 
-        setMyEvents(organizedEvents);
-        setAttendingEvents(allEvents.filter(event => event.is_attending));
+        // Ensure we're working with arrays
+        const myEventsArray = Array.isArray(organizedEvents) ? organizedEvents : [];
+        const allEventsArray = Array.isArray(allEvents) ? allEvents : [];
+
+        setMyEvents(myEventsArray);
+        
+        // Filter events the user is attending
+        setAttendingEvents(allEventsArray.filter(event => event.is_attending));
       } catch (err) {
         console.error('Dashboard error:', err);
         setError('Failed to load dashboard data. Please try again.');
@@ -95,7 +101,7 @@ function Dashboard() {
             title="Events You're Organizing"
             emptyMessage="You haven't created any events yet."
             emptyLink={{ to: '/create-event', text: 'Create Event' }}
-            events={myEvents}
+            events={myEvents || []}
             renderActions={(event) => (
               <>
                 <Link to={`/events/${event.id}`} className="btn-secondary">View</Link>
@@ -111,7 +117,7 @@ function Dashboard() {
             title="Events You're Attending"
             emptyMessage="You're not registered for any events yet."
             emptyLink={{ to: '/events', text: 'Explore Events' }}
-            events={attendingEvents}
+            events={attendingEvents || []}
             renderActions={(event) => (
               <>
                 <Link to={`/events/${event.id}`} className="btn-secondary">View</Link>
@@ -142,18 +148,21 @@ function Dashboard() {
   );
 }
 
-function DashboardSection({ title, events, emptyMessage, emptyLink, renderActions, formatEventDate, showOrganizer = false }) {
+function DashboardSection({ title, events = [], emptyMessage, emptyLink, renderActions, formatEventDate, showOrganizer = false }) {
+  // Defensive check - ensure events is always an array
+  const eventsArray = Array.isArray(events) ? events : [];
+
   return (
     <div className="dashboard-section">
       <h2>{title}</h2>
-      {events.length === 0 ? (
+      {eventsArray.length === 0 ? (
         <div className="empty-state">
           <p>{emptyMessage}</p>
           <Link to={emptyLink.to} className="btn-primary">{emptyLink.text}</Link>
         </div>
       ) : (
         <div className="dashboard-events">
-          {events.map(event => (
+          {eventsArray.map(event => (
             <div key={event.id} className="dashboard-event-card">
               <div className="event-details">
                 <h3>{event.title}</h3>
