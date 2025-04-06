@@ -7,6 +7,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
+from django.contrib.auth import views as auth_views
+from users.views import init_csrf, CustomPasswordResetView
+
+
 
 
 # App views
@@ -106,8 +110,20 @@ urlpatterns = [
     
     # Auth
     path("api-auth/", include("rest_framework.urls")),
-]
 
+    # password reset
+    path("api/password-reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
+    #path("password-reset/", CustomPasswordResetView.as_view(), name="password_reset"),
+    path("api/password-reset/done/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
+    path("api/reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
+    path("api/reset/done/", auth_views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),
+
+
+    # CSRF endpoint
+    path("api/", include("users.urls")),
+    
+
+]
 
 # Serve media files in development
 if settings.DEBUG:

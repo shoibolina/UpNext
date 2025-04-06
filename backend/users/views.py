@@ -7,10 +7,37 @@ from django.contrib.auth import get_user_model
 from .models import UserProfile
 from .serializers import UserSerializer, UserCreateSerializer, UserProfileSerializer
 from .permissions import IsOwnerOrReadOnly
+from django.http import JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.views import PasswordResetView
+from .forms import CustomPasswordResetForm
+
+
+print("🔥 CustomPasswordResetView module loaded")
 
 
 User = get_user_model()
 
+
+@ensure_csrf_cookie
+def init_csrf(request):
+    return JsonResponse({'detail': 'CSRF cookie set'})
+
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+
+    def dispatch(self, request, *args, **kwargs):
+        print("🚦 Reached CustomPasswordResetView.dispatch")
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        print("✅ CustomPasswordResetView.form_valid was called")
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        print("❌ CustomPasswordResetView.form_invalid was called")
+        print("Errors:", form.errors)
+        return super().form_invalid(form)
 
 class RegisterView(generics.CreateAPIView):
     """
@@ -83,6 +110,8 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+    
+    
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
