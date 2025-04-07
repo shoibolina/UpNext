@@ -125,16 +125,12 @@ function App() {
             </ProtectedRoute>
           }
         />
-<<<<<<< HEAD
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/faq" element={<FAQs />} />
         <Route path="/terms" element={<Terms />} />
         {/* Add more routes as needed */}
-=======
-        {/* Catch-all route */}
->>>>>>> d712c2f93ecab4102e188a05ef449a5745c6a6b2
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
