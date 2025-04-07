@@ -11,6 +11,11 @@ import EventDetail from './components/events/EventDetail';
 import EventEdit from './components/events/EventEdit';
 import CreateEvent from './components/events/CreateEvent';
 import authService from './services/authService';
+import About from './components/about/about';
+import Privacy from './components/help/privacy';
+import Contact from './components/help/contact';
+import Terms from './components/help/terms';
+import FAQs from './components/help/faq';
 
 import './App.css';
 
@@ -109,6 +114,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/faq" element={<FAQs />} />
+        <Route path="/terms" element={<Terms />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
