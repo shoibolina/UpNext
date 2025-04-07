@@ -10,6 +10,7 @@ import Events from './components/events/Events';
 import EventDetail from './components/events/EventDetail';
 import EventEdit from './components/events/EventEdit';
 import CreateEvent from './components/events/CreateEvent';
+import TicketVerification from './components/tickets/TicketVerification'; // Ticket verification component
 import authService from './services/authService';
 import About from './components/about/about';
 import Privacy from './components/help/privacy';
@@ -22,7 +23,6 @@ import './App.css';
 // Protected route component
 const ProtectedRoute = ({ children }) => {
   if (!authService.isAuthenticated()) {
-    // Not authenticated, redirect to login
     return <Navigate to="/login" />;
   }
   return children;
@@ -73,7 +73,18 @@ function App() {
             </Layout>
           }
         />
-        {/* Add event edit route */}
+        {/* Ticket verification route for organizers */}
+        <Route
+          path="/ticket-verification/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <TicketVerification />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        {/* Event edit route */}
         <Route
           path="/events/:id/edit"
           element={
@@ -114,17 +125,20 @@ function App() {
             </ProtectedRoute>
           }
         />
+<<<<<<< HEAD
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/faq" element={<FAQs />} />
         <Route path="/terms" element={<Terms />} />
         {/* Add more routes as needed */}
+=======
+        {/* Catch-all route */}
+>>>>>>> d712c2f93ecab4102e188a05ef449a5745c6a6b2
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
 }
 
-
-export default App
+export default App;
