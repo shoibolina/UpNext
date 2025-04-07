@@ -10,14 +10,21 @@ import Events from './components/events/Events';
 import EventDetail from './components/events/EventDetail';
 import EventEdit from './components/events/EventEdit';
 import CreateEvent from './components/events/CreateEvent';
-import TicketVerification from './components/tickets/TicketVerification'; // Ticket verification component
 import authService from './services/authService';
+import CreateVenue from './components/venues/CreateVenue';
+import MyVenues from './components/venues/MyVenues';
+import VenueDetail from './components/venues/VenueDetail';
+import ExploreVenues from './components/venues/ExploreVenues';
+import VenueAvailabilityManager from "./components/venues/VenueAvailabilityManager";
+
+
 
 import './App.css';
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
   if (!authService.isAuthenticated()) {
+    // Not authenticated, redirect to login
     return <Navigate to="/login" />;
   }
   return children;
@@ -68,18 +75,7 @@ function App() {
             </Layout>
           }
         />
-        {/* Ticket verification route for organizers */}
-        <Route
-          path="/ticket-verification/:id"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <TicketVerification />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        {/* Event edit route */}
+        {/* Add event edit route */}
         <Route
           path="/events/:id/edit"
           element={
@@ -120,11 +116,40 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* Catch-all route */}
+        <Route
+          path="/venues"
+          element={
+            <Layout>
+              <ExploreVenues />
+            </Layout>
+          }
+        />
+        <Route
+          path="/create-venue"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CreateVenue />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/venues/:id"
+          element={
+            <Layout>
+              <VenueDetail />
+            </Layout>
+          }
+        />
+        <Route path="/venues/:id/manage-availability" element={<VenueAvailabilityManager />} />
+
+        {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
 }
 
-export default App;
+
+export default App

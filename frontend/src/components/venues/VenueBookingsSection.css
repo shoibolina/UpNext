@@ -1,0 +1,101 @@
+.booking-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .booking-card {
+    border: 1px solid #ddd;
+    border-left: 4px solid royalblue;
+    border-radius: 8px;
+    padding: 16px;
+    background: #f9f9f9;
+    position: relative;
+    width: 250px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  
+  .owner-label {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #3b82f6;
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  
+  .status-confirmed {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .status-pending {
+    color: orange;
+    font-weight: bold;
+  }
+  
+  .status-cancelled {
+    color: gray;
+    font-weight: bold;
+  }
+
+  
+  .booking-card-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 10px;
+  }
+  
+  .owner-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #3b49df; /* Theme blue */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 12px;
+    z-index: 1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-contact-owner {
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    margin-top: 10px;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+  
+  .owner-contact {
+    background: #eef2ff;
+    padding: 8px;
+    margin-top: 10px;
+    border-radius: 6px;
+    font-size: 0.9em;
+  }
+  .venue-link {
+    color: #2d5bd1;
+    text-decoration: underline;
+  }
+  
+  .btn-cancel-booking {
+    margin-top: 10px;
+    background-color: #ff4d4f;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .btn-cancel-booking:hover {
+    background-color: #e03e3f;
+  }
+    

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import authService from '../../services/authService';
 import * as eventServices from '../../services/eventServices';
+import * as venueServices from '../../services/venueServices';
+import VenueBookingsSection from '../venues/VenueBookingsSection';
+import MyVenues from '../venues/MyVenues';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -10,7 +13,17 @@ function Dashboard() {
   const [attendingEvents, setAttendingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('events');
+  // const [activeTab, setActiveTab] = useState('events');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.tab || 'events');
+  const [bookings, setBookings] = useState([]);
+
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+    }
+  }, [location.state]);
+
 
   const navigate = useNavigate();
 
@@ -25,20 +38,30 @@ function Dashboard() {
       try {
         const user = await authService.getCurrentUser();
         setUserData(user);
+        console.log("user ID:", user.id, typeof user.id);
+
+        // const res = await venueServices.fetchWithAuth(`/api/v1/venues/${venue.id}/bookings`);
+
+        // const venues = await venueServices.getMyVenues(user.id); // get venue list
+        const venues = await venueServices.getMyVenues(user.id);
+if (!Array.isArray(venues)) throw new Error("Venue response is not an array");
+        let allBookings = [];
+
+        for (const venue of venues) {
+          const res = await venueServices.fetchWithAuth(`/api/v1/venues/${venue.id}/bookings/`);
+          const bookings = await res.json();
+          allBookings = [...allBookings, ...bookings];
+        }
+        // const allBookings = await res.json();
+        // setBookings(allBookings);
 
         const [organizedEvents, allEvents] = await Promise.all([
           eventServices.getEvents({ organizer: user.id }),
           eventServices.getEvents()
         ]);
 
-        // Ensure we're working with arrays
-        const myEventsArray = Array.isArray(organizedEvents) ? organizedEvents : [];
-        const allEventsArray = Array.isArray(allEvents) ? allEvents : [];
-
-        setMyEvents(myEventsArray);
-        
-        // Filter events the user is attending
-        setAttendingEvents(allEventsArray.filter(event => event.is_attending));
+        setMyEvents(organizedEvents);
+        setAttendingEvents(allEvents.filter(event => event.is_attending));
       } catch (err) {
         console.error('Dashboard error:', err);
         setError('Failed to load dashboard data. Please try again.');
@@ -82,13 +105,24 @@ function Dashboard() {
       </div>
 
       <div className="dashboard-tabs">
-        {['events', 'attending', userData.is_venue_owner && 'venues'].filter(Boolean).map(tab => (
+        {/* {['events', 'attending', userData.is_venue_owner && 'venues'].filter(Boolean).map(tab => (
           <button
             key={tab}
-            className={`tab-button ${activeTab === tab ? 'active' : ''}`}
+            className={tab-button ${activeTab === tab ? 'active' : ''}}
             onClick={() => setActiveTab(tab)}
           >
             {tab === 'events' ? 'My Events' : tab === 'attending' ? 'Attending' : 'My Venues'}
+          </button>
+        ))} */}
+        {['events', 'attending', userData.is_venue_owner && 'venues', 'bookings'].filter(Boolean).map(tab => (
+          <button
+            key={tab}
+            className={`tab-button ${activeTab === tab ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab)} >
+            {tab === 'events' ? 'My Events' : 
+            tab === 'attending' ? 'Attending' : 
+            tab === 'venues' ? 'My Venues' : 
+            'My Bookings'}
           </button>
         ))}
       </div>
@@ -101,7 +135,7 @@ function Dashboard() {
             title="Events You're Organizing"
             emptyMessage="You haven't created any events yet."
             emptyLink={{ to: '/create-event', text: 'Create Event' }}
-            events={myEvents || []}
+            events={myEvents}
             renderActions={(event) => (
               <>
                 <Link to={`/events/${event.id}`} className="btn-secondary">View</Link>
@@ -117,7 +151,7 @@ function Dashboard() {
             title="Events You're Attending"
             emptyMessage="You're not registered for any events yet."
             emptyLink={{ to: '/events', text: 'Explore Events' }}
-            events={attendingEvents || []}
+            events={attendingEvents}
             renderActions={(event) => (
               <>
                 <Link to={`/events/${event.id}`} className="btn-secondary">View</Link>
@@ -134,7 +168,7 @@ function Dashboard() {
           />
         )}
 
-        {activeTab === 'venues' && (
+        {/* {activeTab === 'venues' && (
           <div className="dashboard-section">
             <h2>Your Venues</h2>
             <div className="empty-state">
@@ -142,27 +176,34 @@ function Dashboard() {
               <Link to="/create-venue" className="btn-primary">List a Venue</Link>
             </div>
           </div>
+        )} */}
+        {activeTab === 'venues' && (
+          <div className="dashboard-section">
+            <MyVenues />
+          </div>
         )}
+
+        {activeTab === 'bookings' && (
+          <VenueBookingsSection bookings={bookings} currentUser={userData} />
+        )}
+
       </div>
     </div>
   );
 }
 
-function DashboardSection({ title, events = [], emptyMessage, emptyLink, renderActions, formatEventDate, showOrganizer = false }) {
-  // Defensive check - ensure events is always an array
-  const eventsArray = Array.isArray(events) ? events : [];
-
+function DashboardSection({ title, events, emptyMessage, emptyLink, renderActions, formatEventDate, showOrganizer = false }) {
   return (
     <div className="dashboard-section">
       <h2>{title}</h2>
-      {eventsArray.length === 0 ? (
+      {events.length === 0 ? (
         <div className="empty-state">
           <p>{emptyMessage}</p>
           <Link to={emptyLink.to} className="btn-primary">{emptyLink.text}</Link>
         </div>
       ) : (
         <div className="dashboard-events">
-          {eventsArray.map(event => (
+          {events.map(event => (
             <div key={event.id} className="dashboard-event-card">
               <div className="event-details">
                 <h3>{event.title}</h3>
