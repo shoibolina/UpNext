@@ -7,6 +7,15 @@ from django.contrib.auth import get_user_model
 from .models import UserProfile
 from .serializers import UserSerializer, UserCreateSerializer, UserProfileSerializer
 from .permissions import IsOwnerOrReadOnly
+from django.http import JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.views import PasswordResetView
+
+
+@ensure_csrf_cookie
+def init_csrf(request):
+    return JsonResponse({'detail': 'CSRF cookie set'})
+
 
 User = get_user_model()
 

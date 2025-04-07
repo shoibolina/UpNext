@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -72,11 +73,11 @@ WSGI_APPLICATION = 'upnext.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'upnext',
-        'USER': 'username',  # Replace with your database user
-        'PASSWORD': 'password',  # Replace with your database password
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'), # Replace with your database user
+        'PASSWORD': config('DB_PASSWORD'), # Replace with your database password
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
 
@@ -149,6 +150,16 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
 }
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'webmaster@localhost'
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = False
+CORS_ALLOW_CREDENTIALS = True
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True  # In production, specify the allowed origins

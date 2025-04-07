@@ -7,6 +7,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
+from django.contrib.auth import views as auth_views
+from users.views import init_csrf
 
 # App views
 from users.views import UserViewSet, RegisterView, UserProfileViewSet
@@ -77,6 +79,18 @@ urlpatterns = [
     path('api/v1/venues/<int:venue_pk>/bookings/', VenueBookingViewSet.as_view({'get': 'list', 'post': 'create'}), name='venue-bookings'),
     path('api/v1/venues/<int:venue_pk>/reviews/', VenueReviewViewSet.as_view({'get': 'list', 'post': 'create'}), name='venue-reviews'),
     
+    path("api-auth/", include("rest_framework.urls")),
+
+    # password reset
+    path("api/password-reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
+    #path("password-reset/", CustomPasswordResetView.as_view(), name="password_reset"),
+    path("api/password-reset/done/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
+    path("api/reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
+    path("api/reset/done/", auth_views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),
+
+
+    # CSRF endpoint
+    path("api/", include("users.urls")),
     # Ticket-specific routes
     path('api/v1/events/<int:event_pk>/tickets/', TicketViewSet.as_view({'get': 'list'}), name='event-tickets'),
     
