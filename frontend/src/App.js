@@ -10,21 +10,24 @@ import Events from './components/events/Events';
 import EventDetail from './components/events/EventDetail';
 import EventEdit from './components/events/EventEdit';
 import CreateEvent from './components/events/CreateEvent';
+import TicketVerification from './components/tickets/TicketVerification'; // Ticket verification component
 import authService from './services/authService';
-import CreateVenue from './components/venues/CreateVenue';
-import MyVenues from './components/venues/MyVenues';
-import VenueDetail from './components/venues/VenueDetail';
-import ExploreVenues from './components/venues/ExploreVenues';
-import VenueAvailabilityManager from "./components/venues/VenueAvailabilityManager";
-
-
+import About from './components/about/about';
+import Privacy from './components/help/privacy';
+import Contact from './components/help/contact';
+import Terms from './components/help/terms';
+import FAQs from './components/help/faq';
+import ExploreVenues from "./components/venues/ExploreVenues";
+import VenueDetail from "./components/venues/VenueDetail";
+import CreateVenue from "./components/venues/CreateVenue";
+import ManageAvailability from './components/venues/ManageAvailability';
+import BookVenueForm from './components/venues/BookVenueForm';
 
 import './App.css';
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
   if (!authService.isAuthenticated()) {
-    // Not authenticated, redirect to login
     return <Navigate to="/login" />;
   }
   return children;
@@ -75,7 +78,18 @@ function App() {
             </Layout>
           }
         />
-        {/* Add event edit route */}
+        {/* Ticket verification route for organizers */}
+        <Route
+          path="/ticket-verification/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <TicketVerification />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        {/* Event edit route */}
         <Route
           path="/events/:id/edit"
           element={
@@ -116,6 +130,13 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/faq" element={<FAQs />} />
+        <Route path="/terms" element={<Terms />} />
+
+        {/* Venue routes */}
         <Route
           path="/venues"
           element={
@@ -124,6 +145,16 @@ function App() {
             </Layout>
           }
         />
+
+        <Route
+          path="/venues/:id"
+          element={
+            <Layout>
+              <VenueDetail />
+            </Layout>
+          }
+        />
+
         <Route
           path="/create-venue"
           element={
@@ -135,14 +166,18 @@ function App() {
           }
         />
         <Route
-          path="/venues/:id"
+          path="/venues/:id/availability"
           element={
-            <Layout>
-              <VenueDetail />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <ManageAvailability />
+              </Layout>
+            </ProtectedRoute>
           }
         />
-        <Route path="/venues/:id/manage-availability" element={<VenueAvailabilityManager />} />
+
+        <Route path="/venues/:id/book" element={<BookVenueForm />} />
+
 
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
@@ -151,5 +186,4 @@ function App() {
   );
 }
 
-
-export default App
+export default App;

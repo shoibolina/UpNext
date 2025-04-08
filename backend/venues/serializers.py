@@ -30,15 +30,6 @@ class VenueImageSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "venue")
 
 
-# class VenueAvailabilitySerializer(serializers.ModelSerializer):
-#     day_name = serializers.CharField(source='get_day_of_week_display', read_only=True)
-
-#     class Meta:
-#         model = VenueAvailability
-#         fields = ('id', 'venue', 'day_of_week', 'day_name', 'opening_time', 'closing_time', 'is_available')
-#         read_only_fields = ('id', 'venue')
-
-
 class VenueAvailabilitySerializer(serializers.ModelSerializer):
     day_name = serializers.CharField(source="get_day_of_week_display", read_only=True)
 
@@ -47,49 +38,33 @@ class VenueAvailabilitySerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "venue",
-            "date",
             "day_of_week",
             "day_name",
             "opening_time",
             "closing_time",
-            "repeat_weekly",
             "is_available",
+            "repeat_weekly",
         )
         read_only_fields = ("id", "venue")
 
+    def validate(self, data):
+        venue = self.context["view"].kwargs.get("venue_pk") or data.get("venue")
+        day = data.get("day_of_week")
+        open_time = data.get("opening_time")
+        close_time = data.get("closing_time")
 
-class VenueBookingSerializer(serializers.ModelSerializer):
-    booker = UserSerializer(read_only=True)
+        if VenueAvailability.objects.filter(
+            venue=venue,
+            day_of_week=day,
+            opening_time=open_time,
+            closing_time=close_time,
+        ).exists():
+            # raise serializers.ValidationError("This availability slot already exists.")
+            raise serializers.ValidationError(
+                {"non_field_errors": ["This time slot already exists for this venue."]}
+            )
 
-    class Meta:
-        model = VenueBooking
-        fields = (
-            "id",
-            "venue",
-            "event",
-            "booker",
-            "booking_date",
-            "start_time",
-            "end_time",
-            "total_price",
-            "status",
-            "created_at",
-            "updated_at",
-        )
-        read_only_fields = (
-            "id",
-            "venue",
-            "booker",
-            "total_price",
-            "created_at",
-            "updated_at",
-        )
-
-    def create(self, validated_data):
-        request = self.context.get("request")
-        if request and hasattr(request, "user"):
-            validated_data["booker"] = request.user
-        return super().create(validated_data)
+        return data
 
 
 class VenueReviewSerializer(serializers.ModelSerializer):
@@ -183,6 +158,67 @@ class VenueSerializer(serializers.ModelSerializer):
         if request and hasattr(request, "user"):
             validated_data["owner"] = request.user
         return super().create(validated_data)
+
+
+class VenueBookingSerializer(serializers.ModelSerializer):
+    booker = UserSerializer(read_only=True)
+    venue = VenueSerializer(read_only=True)
+
+    class Meta:
+        model = VenueBooking
+        fields = (
+            "id",
+            "venue",
+            "event",
+            "booker",
+            "booking_date",
+            "start_time",
+            "end_time",
+            "total_price",
+            "status",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "venue",
+            "booker",
+            "total_price",
+            "created_at",
+            "updated_at",
+        )
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            validated_data["booker"] = request.user
+        validated_data["status"] = "confirmed"
+        return super().create(validated_data)
+
+    def validate(self, data):
+        venue = data.get("venue")
+        date = data.get("booking_date")
+        start = data.get("start_time")
+        end = data.get("end_time")
+
+        overlapping = VenueBooking.objects.filter(
+            venue=venue,
+            booking_date=date,
+            start_time__lt=end,
+            end_time__gt=start,
+            status__in=["pending", "confirmed"],
+        )
+
+        if overlapping.exists():
+            raise serializers.ValidationError(
+                {
+                    "non_field_errors": [
+                        "This time slot is already booked. Please choose another time."
+                    ]
+                }
+            )
+
+        return data
 
 
 class VenueDetailSerializer(VenueSerializer):

@@ -96,31 +96,14 @@ class VenueImage(models.Model):
         return f"Image for {self.venue.name}"
 
 
-# class VenueAvailability(models.Model):
-#     """
-#     Tracks venue availability for booking.
-#     """
-#     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name='availability')
-#     day_of_week = models.IntegerField(choices=[(i, day) for i, day in enumerate(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])])
-#     opening_time = models.TimeField()
-#     closing_time = models.TimeField()
-#     is_available = models.BooleanField(default=True)
-
-#     class Meta:
-#         unique_together = ('venue', 'day_of_week')
-
-#     def __str__(self):
-#         return f"{self.venue.name} - {self.get_day_of_week_display()}"
-
-
 class VenueAvailability(models.Model):
+    """
+    Tracks venue availability for booking.
+    """
+
     venue = models.ForeignKey(
         Venue, on_delete=models.CASCADE, related_name="availability"
     )
-
-    # Add optional date-based availability
-    date = models.DateField(null=True, blank=True)
-
     day_of_week = models.IntegerField(
         choices=[
             (i, day)
@@ -135,23 +118,19 @@ class VenueAvailability(models.Model):
                     "Sunday",
                 ]
             )
-        ],
-        null=True,
-        blank=True,
+        ]
     )
-
     opening_time = models.TimeField()
     closing_time = models.TimeField()
-
-    # Add repeat toggle
-    repeat_weekly = models.BooleanField(default=False)
     is_available = models.BooleanField(default=True)
+    repeat_weekly = models.BooleanField(default=True)
 
     class Meta:
-        unique_together = ("venue", "day_of_week", "date")  # Optional safeguard
+        # unique_together = ("venue", "day_of_week")
+        unique_together = ("venue", "day_of_week", "opening_time", "closing_time")
 
     def __str__(self):
-        return f"{self.venue.name} - {self.date or self.get_day_of_week_display()}"
+        return f"{self.venue.name} - {self.get_day_of_week_display()}"
 
 
 class VenueBooking(models.Model):

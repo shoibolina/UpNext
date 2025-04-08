@@ -58,8 +58,7 @@ router.register(r"event-categories", EventCategoryViewSet)
 router.register(r"venues", VenueViewSet)
 router.register(r"venue-categories", VenueCategoryViewSet)
 router.register(r"venue-amenities", VenueAmenityViewSet)
-router.register(r"bookings", VenueBookingViewSet, basename="all-bookings")
-router.register(r"bookings", VenueBookingViewSet, basename="booking")
+router.register(r"venue-bookings", VenueBookingViewSet, basename="venuebooking")
 
 # Register ticket routes
 router.register(r"tickets", TicketViewSet, basename="ticket")
@@ -114,6 +113,11 @@ urlpatterns = [
         "api/v1/venues/<int:venue_pk>/reviews/",
         VenueReviewViewSet.as_view({"get": "list", "post": "create"}),
         name="venue-reviews",
+    ),
+    path(
+        "api/v1/venues/<int:pk>/all-bookings/",
+        VenueViewSet.as_view({"get": "all_bookings"}),
+        name="venue-all-bookings",
     ),
     # Ticket-specific routes
     path(

@@ -1,8 +1,7 @@
-import datetime
-from rest_framework.exceptions import ValidationError
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from decimal import Decimal
 from django.db.models import Q, Avg
 from .models import (
@@ -59,7 +58,11 @@ class VenueViewSet(viewsets.ModelViewSet):
     API endpoint for venues.
     """
 
-    queryset = Venue.objects.all()
+    # lookup_field = "id"
+
+    # queryset = Venue.objects.all()
+    queryset = Venue.objects.filter(is_active=True)
+
     serializer_class = VenueSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsVenueOwnerOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -67,96 +70,86 @@ class VenueViewSet(viewsets.ModelViewSet):
     ordering_fields = ["name", "created_at", "hourly_rate", "capacity"]
     ordering = ["name"]
 
-    from django.db.models import Q
-
     def get_queryset(self):
+        # Check if this is a schema generation request
         if getattr(self, "swagger_fake_view", False):
             return Venue.objects.none()
 
-        user = self.request.user
-        owner_param = self.request.query_params.get("owner")
+        # queryset = Venue.objects.filter(is_active=True)
+        queryset = Venue.objects.all()
 
-        # If viewing detail or toggling active, return all owner venues
-        if self.action in ["retrieve", "toggle_active"] and user.is_authenticated:
-            return Venue.objects.filter(Q(is_active=True) | Q(owner=user))
+        # Public list view should show only active venues
+        if self.action == "list" and not self.request.user.is_staff:
+            queryset = queryset.filter(is_active=True)
 
-        # Default: only active venues for general views
-        queryset = Venue.objects.filter(is_active=True)
-
-        if user.is_authenticated and owner_param == str(user.id):
-            queryset = Venue.objects.filter(owner=user)
-            # Allow filtering by is_active explicitly
+        # Filter by active status (admin can see inactive venues)
+        if self.request.user.is_staff:
             is_active = self.request.query_params.get("is_active")
             if is_active is not None:
                 is_active = is_active.lower() == "true"
-                queryset = queryset.filter(is_active=is_active)
+                queryset = Venue.objects.filter(is_active=is_active)
 
-        if user.is_staff:
-            is_active = self.request.query_params.get("is_active")
-            queryset = Venue.objects.all()
-            if is_active is not None:
-                is_active = is_active.lower() == "true"
-                queryset = queryset.filter(is_active=is_active)
+        # Filter by owner
+        # owner = self.request.query_params.get("owner")
+        # if owner:
+        #     queryset = queryset.filter(owner__id=owner)
+        owner = self.request.query_params.get("owner")
+        if owner == "true" and self.request.user.is_authenticated:
+            queryset = queryset.filter(owner=self.request.user)
+        elif owner:
+            queryset = queryset.filter(owner__id=owner)
 
-        # Additional filters...
-        if owner_param and (not user.is_authenticated or owner_param != str(user.id)):
-            queryset = queryset.filter(owner__id=owner_param)
+        # Filter by verification status
+        is_verified = self.request.query_params.get("is_verified")
+        if is_verified is not None:
+            is_verified = is_verified.lower() == "true"
+            queryset = queryset.filter(is_verified=is_verified)
 
-            # Additional filters
-            is_verified = self.request.query_params.get("is_verified")
-            if is_verified is not None:
-                is_verified = is_verified.lower() == "true"
-                queryset = queryset.filter(is_verified=is_verified)
+        # Filter by category
+        category = self.request.query_params.get("category")
+        if category:
+            queryset = queryset.filter(categories__id=category)
 
-            city = self.request.query_params.get("city")
-            if city:
-                queryset = queryset.filter(city__icontains=city)
+        # Filter by amenity
+        amenity = self.request.query_params.get("amenity")
+        if amenity:
+            queryset = queryset.filter(amenities__id=amenity)
 
-            state = self.request.query_params.get("state")
-            if state:
-                queryset = queryset.filter(state__icontains=state)
+        # Filter by location
+        city = self.request.query_params.get("city")
+        if city:
+            queryset = queryset.filter(city__icontains=city)
 
-            min_capacity = self.request.query_params.get("min_capacity")
-            if min_capacity:
-                queryset = queryset.filter(capacity__gte=min_capacity)
+        state = self.request.query_params.get("state")
+        if state:
+            queryset = queryset.filter(state__icontains=state)
 
-            max_capacity = self.request.query_params.get("max_capacity")
-            if max_capacity:
-                queryset = queryset.filter(capacity__lte=max_capacity)
+        # Filter by capacity
+        min_capacity = self.request.query_params.get("min_capacity")
+        if min_capacity:
+            queryset = queryset.filter(capacity__gte=min_capacity)
 
-            min_price = self.request.query_params.get("min_price")
-            if min_price:
-                queryset = queryset.filter(hourly_rate__gte=min_price)
+        max_capacity = self.request.query_params.get("max_capacity")
+        if max_capacity:
+            queryset = queryset.filter(capacity__lte=max_capacity)
 
-            max_price = self.request.query_params.get("max_price")
-            if max_price:
-                queryset = queryset.filter(hourly_rate__lte=max_price)
+        # Filter by price
+        min_price = self.request.query_params.get("min_price")
+        if min_price:
+            queryset = queryset.filter(hourly_rate__gte=min_price)
 
-            min_rating = self.request.query_params.get("min_rating")
-            if min_rating:
-                queryset = queryset.annotate(avg_rating=Avg("reviews__rating")).filter(
-                    avg_rating__gte=min_rating
-                )
+        max_price = self.request.query_params.get("max_price")
+        if max_price:
+            queryset = queryset.filter(hourly_rate__lte=max_price)
+
+        # Filter by rating
+        min_rating = self.request.query_params.get("min_rating")
+        if min_rating:
+            queryset = queryset.annotate(avg_rating=Avg("reviews__rating")).filter(
+                avg_rating__gte=min_rating
+            )
 
         return queryset
-
-    def get_object(self):
-        obj = super().get_object()
-
-        # Allow access if:
-        # - venue is active
-        # - OR user is owner
-        # - OR user is staff
-        if (
-            not obj.is_active
-            and obj.owner != self.request.user
-            and not self.request.user.is_staff
-        ):
-            from rest_framework.exceptions import PermissionDenied
-
-            raise PermissionDenied("You do not have permission to view this venue.")
-
-        return obj
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -189,233 +182,63 @@ class VenueViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+    # made additions here
+    @action(
+        detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated]
+    )
+    def my(self, request):
+        """
+        List venues owned by the logged-in user.
+        """
+        user = request.user
+        # queryset = self.get_queryset().filter(owner=user)
+        queryset = Venue.objects.filter(owner=user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(
-        detail=True,
-        methods=["post"],
-        permission_classes=[permissions.IsAuthenticated],
-        url_path="toggle_active",
-        url_name="toggle-active",
+        detail=True, methods=["patch"], permission_classes=[permissions.IsAuthenticated]
     )
     def toggle_active(self, request, pk=None):
+        """
+        Activate or deactivate a venue.
+        """
         venue = self.get_object()
-
-        # Optional: restrict to owner only
         if venue.owner != request.user:
             return Response(
-                {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
+                {"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN
             )
 
         venue.is_active = not venue.is_active
         venue.save()
+        serializer = self.get_serializer(venue)
+        return Response(serializer.data)
 
-        return Response({"id": venue.id, "is_active": venue.is_active}, status=200)
+    @action(
+        detail=True, methods=["get"], permission_classes=[permissions.IsAuthenticated]
+    )
+    def all_bookings(self, request, pk=None):
+        """
+        Return bookings for this venue.
+        - If owner: return all bookings.
+        - Else: return only current user's bookings for this venue.
+        """
+        venue = self.get_object()
+        user = request.user
 
+        # if venue.owner == user:
+        #     bookings = venue.bookings.select_related("booker").all()
+        # else:
+        #     bookings = venue.bookings.filter(booker=user)
 
-# class VenueViewSet(viewsets.ModelViewSet):
-#     """
-#     API endpoint for venues.
-#     """
+        bookings = venue.bookings.filter(status="confirmed").select_related("booker")
 
-#     queryset = Venue.objects.all()
-#     serializer_class = VenueSerializer
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsVenueOwnerOrReadOnly]
-#     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-#     search_fields = ["name", "description", "address", "city", "state"]
-#     ordering_fields = ["name", "created_at", "hourly_rate", "capacity"]
-#     ordering = ["name"]
+        logger.info(
+            f"[all_bookings] {user.username} - Owner: {venue.owner == user} - Total: {bookings.count()}"
+        )
 
-#     from django.db.models import Q
-
-#     def get_queryset(self):
-#         if getattr(self, "swagger_fake_view", False):
-#             return Venue.objects.none()
-
-#         # user = self.request.user
-#         # owner_param = self.request.query_params.get("owner")
-
-#         # # For toggle_active: include the owner's own inactive venue
-#         # if self.action == "toggle_active" and user.is_authenticated:
-#         #     return Venue.objects.filter(owner=user)
-
-#         # # Default: only active venues for general users (e.g., ExploreVenues)
-#         # queryset = Venue.objects.filter(is_active=True)
-
-#         # # Owners should see all their venues when requesting their own
-#         # if user.is_authenticated and owner_param == str(user.id):
-#         #     queryset = Venue.objects.filter(owner=user)
-
-#         # # Admin override for is_active filter
-#         # if user.is_staff:
-#         #     is_active = self.request.query_params.get("is_active")
-#         #     if is_active is not None:
-#         #         is_active = is_active.lower() == "true"
-#         #         queryset = Venue.objects.filter(is_active=is_active)
-
-#         # # Apply other filters
-#         # if owner_param and owner_param != str(user.id):
-#         #     queryset = queryset.filter(owner__id=owner_param)
-
-#         # is_verified = self.request.query_params.get("is_verified")
-#         # if is_verified is not None:
-#         #     is_verified = is_verified.lower() == "true"
-#         #     queryset = queryset.filter(is_verified=is_verified)
-
-#         user = self.request.user
-#         owner_param = self.request.query_params.get("owner")
-
-#         # If viewing detail or toggling active, return all owner venues
-#         if self.action in ["retrieve", "toggle_active"] and user.is_authenticated:
-#             return Venue.objects.filter(Q(is_active=True) | Q(owner=user))
-
-#         # Default: only active venues for general views
-#         queryset = Venue.objects.filter(is_active=True)
-
-#         if user.is_authenticated and owner_param == str(user.id):
-#             queryset = Venue.objects.filter(owner=user)
-
-#         if user.is_staff:
-#             is_active = self.request.query_params.get("is_active")
-#             queryset = Venue.objects.all()
-#             if is_active is not None:
-#                 is_active = is_active.lower() == "true"
-#                 queryset = queryset.filter(is_active=is_active)
-
-#         # Additional filters...
-#         if owner_param and (not user.is_authenticated or owner_param != str(user.id)):
-#             queryset = queryset.filter(owner__id=owner_param)
-
-#         # Additional filters
-#         # is_verified = self.request.query_params.get("is_verified")
-#         # if is_verified is not None:
-#         #     is_verified = is_verified.lower() == "true"
-#         #     queryset = queryset.filter(is_verified=is_verified)
-
-#         city = self.request.query_params.get("city")
-#         if city:
-#             queryset = queryset.filter(city__icontains=city)
-
-#         state = self.request.query_params.get("state")
-#         if state:
-#             queryset = queryset.filter(state__icontains=state)
-
-#         min_capacity = self.request.query_params.get("min_capacity")
-#         if min_capacity:
-#             queryset = queryset.filter(capacity__gte=min_capacity)
-
-#         max_capacity = self.request.query_params.get("max_capacity")
-#         if max_capacity:
-#             queryset = queryset.filter(capacity__lte=max_capacity)
-
-#         min_price = self.request.query_params.get("min_price")
-#         if min_price:
-#             queryset = queryset.filter(hourly_rate__gte=min_price)
-
-#         max_price = self.request.query_params.get("max_price")
-#         if max_price:
-#             queryset = queryset.filter(hourly_rate__lte=max_price)
-
-#         min_rating = self.request.query_params.get("min_rating")
-#         if min_rating:
-#             queryset = queryset.annotate(avg_rating=Avg("reviews__rating")).filter(
-#                 avg_rating__gte=min_rating
-#             )
-
-#         return queryset
-
-#     # def get_object(self):
-#     #     obj = super().get_object()
-
-#     #     # Allow access to inactive venue if:
-#     #     # - The user is the owner
-#     #     # - OR the user is staff
-#     #     # - OR the action is toggle_active
-#     #     if (
-#     #         not obj.is_active
-#     #         and obj.owner != self.request.user
-#     #         and not self.request.user.is_staff
-#     #         and self.action != "toggle_active"
-#     #     ):
-#     #         from rest_framework.exceptions import PermissionDenied
-
-#     #         raise PermissionDenied("You do not have permission to view this venue.")
-
-#     #     return obj
-
-#     def get_object(self):
-#         obj = super().get_object()
-
-#         # Allow access if:
-#         # - venue is active
-#         # - OR user is owner
-#         # - OR user is staff
-#         if (
-#             not obj.is_active
-#             and obj.owner != self.request.user
-#             and not self.request.user.is_staff
-#         ):
-#             from rest_framework.exceptions import PermissionDenied
-
-#             raise PermissionDenied("You do not have permission to view this venue.")
-
-#         return obj
-
-#     def get_serializer_class(self):
-#         if self.action == "retrieve":
-#             return VenueDetailSerializer
-#         return VenueSerializer
-
-#     @action(
-#         detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
-#     )
-#     def review(self, request, pk=None):
-#         """
-#         API endpoint to review a venue.
-#         """
-#         venue = self.get_object()
-
-#         # Check if already reviewed
-#         existing_review = VenueReview.objects.filter(
-#             venue=venue, user=request.user
-#         ).first()
-#         if existing_review:
-#             return Response(
-#                 {"message": "You have already reviewed this venue."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         serializer = VenueReviewSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(venue=venue, user=request.user)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     def perform_create(self, serializer):
-#         serializer.save(owner=self.request.user)
-
-#     @action(
-#         detail=True,
-#         methods=["post"],
-#         permission_classes=[permissions.IsAuthenticated],
-#         url_path="toggle_active",
-#         url_name="toggle-active",
-#     )
-#     def toggle_active(self, request, pk=None):
-#         venue = self.get_object()
-
-#         # Optional: restrict to owner only
-#         if venue.owner != request.user:
-#             return Response(
-#                 {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
-#             )
-
-#         venue.is_active = not venue.is_active
-#         venue.save()
-
-#         return Response({"id": venue.id, "is_active": venue.is_active}, status=200)
+        serializer = VenueBookingSerializer(bookings, many=True)
+        return Response(serializer.data)
 
 
 class VenueImageViewSet(viewsets.ModelViewSet):
@@ -449,78 +272,27 @@ class VenueImageViewSet(viewsets.ModelViewSet):
         serializer.save(venue=venue)
 
 
-# class VenueAvailabilityViewSet(viewsets.ModelViewSet):
-#     """
-#     API endpoint for venue availability.
-#     """
-
-#     serializer_class = VenueAvailabilitySerializer
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsVenueOwnerOrReadOnly]
-
-#     def get_queryset(self):
-#         # Check if this is a schema generation request
-#         if getattr(self, "swagger_fake_view", False):
-#             return VenueAvailability.objects.none()
-
-#         venue_id = self.kwargs.get("venue_pk")
-#         if venue_id:
-#             return VenueAvailability.objects.filter(venue_id=venue_id)
-#         return VenueAvailability.objects.none()
-
-#     def perform_create(self, serializer):
-#         venue_id = self.kwargs.get("venue_pk")
-#         venue = Venue.objects.get(pk=venue_id)
-#         serializer.save(venue=venue)
-
-from datetime import timedelta
-from rest_framework.exceptions import ValidationError
-
-
 class VenueAvailabilityViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for venue availability.
+    """
+
     serializer_class = VenueAvailabilitySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsVenueOwnerOrReadOnly]
 
     def get_queryset(self):
+        # Check if this is a schema generation request
         if getattr(self, "swagger_fake_view", False):
             return VenueAvailability.objects.none()
 
         venue_id = self.kwargs.get("venue_pk")
-        if not venue_id:
-            return VenueAvailability.objects.none()
-
-        base_queryset = VenueAvailability.objects.filter(venue_id=venue_id)
-
-        # Optional: Filter by date
-        target_date = self.request.query_params.get("date")
-        if target_date:
-            weekday = datetime.strptime(target_date, "%Y-%m-%d").weekday()
-            return base_queryset.filter(
-                Q(date=target_date) | Q(day_of_week=weekday, repeat_weekly=True)
-            )
-
-        return base_queryset
+        if venue_id:
+            return VenueAvailability.objects.filter(venue_id=venue_id)
+        return VenueAvailability.objects.none()
 
     def perform_create(self, serializer):
         venue_id = self.kwargs.get("venue_pk")
         venue = Venue.objects.get(pk=venue_id)
-
-        if serializer.is_valid():  # debug
-            serializer.save(venue=venue)
-        else:
-            print("Validation errors:", serializer.errors)
-            raise ValidationError(serializer.errors)
-
-        # Handle repeat_weekly expansion (optional for future)
-        if serializer.validated_data.get(
-            "repeat_weekly"
-        ) and serializer.validated_data.get("date"):
-            raise ValidationError(
-                "You cannot provide both 'date' and 'repeat_weekly=True'. Use one or the other."
-            )
-
-        print("POST data:", self.request.data)  # Debug log
-        if not serializer.is_valid():
-            print("Serializer errors:", serializer.errors)
         serializer.save(venue=venue)
 
 
@@ -529,6 +301,7 @@ class VenueBookingViewSet(viewsets.ModelViewSet):
     API endpoint for venue bookings.
     """
 
+    queryset = VenueBooking.objects.all()
     serializer_class = VenueBookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -632,20 +405,12 @@ class VenueBookingViewSet(viewsets.ModelViewSet):
                 raise serializers.ValidationError("This time slot is already booked")
 
             # All validation passed, save the booking
-            validated_data = serializer.validated_data
-            validated_data["status"] = "confirmed"
-
             serializer.save(
                 venue=venue,
                 booker=self.request.user,
                 total_price=total_price,
+                status="confirmed",
             )
-            # serializer.save(
-            #     venue=venue,
-            #     booker=self.request.user,
-            #     total_price=total_price,
-            #     status="confirmed",  # to show confirmed bookings
-            # )
 
         except Venue.DoesNotExist:
             from rest_framework import serializers
@@ -691,6 +456,17 @@ class VenueBookingViewSet(viewsets.ModelViewSet):
         return Response(
             {"message": "Booking cancelled successfully."}, status=status.HTTP_200_OK
         )
+
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    def my(self, request):
+        user = request.user
+
+        bookings = self.queryset.filter(
+            Q(booker=user) | Q(venue__owner=user), status__in=["confirmed", "cancelled"]
+        ).select_related("venue", "booker", "venue__owner")
+
+        serializer = self.get_serializer(bookings, many=True)
+        return Response(serializer.data)
 
 
 class VenueReviewViewSet(viewsets.ModelViewSet):
