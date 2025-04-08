@@ -10,11 +10,8 @@
     "axios": "^1.8.4",
     "html5-qrcode": "^2.3.8",
     "react": "^19.0.0",
-<<<<<<< HEAD
-=======
     "react-calendar": "^5.1.0",
     "react-datepicker": "^8.2.1",
->>>>>>> b08a65a (Working venue functionality added)
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.3.0",
     "react-scripts": "^5.0.1",
