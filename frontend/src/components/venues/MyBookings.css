@@ -1,0 +1,69 @@
+.my-bookings {
+    padding: 1rem;
+  }
+
+  .booking-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
+  
+  .booking-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #fafafa;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    /* position: relative; */
+    width: 15rem;
+  }
+  
+  .booking-card h3 {
+    margin-top: 0;
+  }
+  
+  .booking-card .booking-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .btn-secondary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+  }
+  
+  .confirmed {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .cancelled {
+    color: #b00;
+    font-weight: bold;
+  }
+
+  .owner-badge {
+    display: inline-block;
+    background-color: #444;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    margin-left: 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  

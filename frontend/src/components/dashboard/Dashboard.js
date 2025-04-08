@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import authService from '../../services/authService';
 import * as eventServices from '../../services/eventServices';
 import './Dashboard.css';
+import MyVenues from '../venues/MyVenues';
+import MyBookings from '../venues/MyBookings';
+
 
 function Dashboard() {
   const [userData, setUserData] = useState(null);
@@ -11,6 +14,14 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('events');
+  const location = useLocation();
+    
+    useEffect(() => {
+      const tabFromNav = location.state?.tab;
+      if (tabFromNav) {
+        setActiveTab(tabFromNav);
+      }
+    }, [location.state]);
 
   const navigate = useNavigate();
 
@@ -82,13 +93,13 @@ function Dashboard() {
       </div>
 
       <div className="dashboard-tabs">
-        {['events', 'attending', userData.is_venue_owner && 'venues'].filter(Boolean).map(tab => (
+        {['events', 'attending', userData.is_venue_owner && 'venues', 'bookings'].filter(Boolean).map(tab => (
           <button
             key={tab}
             className={`tab-button ${activeTab === tab ? 'active' : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === 'events' ? 'My Events' : tab === 'attending' ? 'Attending' : 'My Venues'}
+            {tab === 'events' ? 'My Events' : tab === 'attending' ? 'Attending' : tab === 'venues' ? 'My Venues' : 'My Bookings'}
           </button>
         ))}
       </div>
@@ -134,15 +145,8 @@ function Dashboard() {
           />
         )}
 
-        {activeTab === 'venues' && (
-          <div className="dashboard-section">
-            <h2>Your Venues</h2>
-            <div className="empty-state">
-              <p>You haven't listed any venues yet.</p>
-              <Link to="/create-venue" className="btn-primary">List a Venue</Link>
-            </div>
-          </div>
-        )}
+        {activeTab === 'venues' && <MyVenues />}
+        {activeTab === 'bookings' && <MyBookings />}
       </div>
     </div>
   );
