@@ -10,7 +10,7 @@ function Footer() {
           <h3>UpNext</h3>
           <p>Discover and join local events, or create your own!</p>
         </div>
-        
+
         <div className="footer-section">
           <h3>Quick Links</h3>
           <ul>
@@ -20,18 +20,18 @@ function Footer() {
             <li><Link to="/about">About Us</Link></li>
           </ul>
         </div>
-        
+
         <div className="footer-section">
           <h3>Help & Support</h3>
           <ul>
             <li><Link to="/contact">Contact Us</Link></li>
-            <li><Link to="/faq">FAQ</Link></li>
+            <li><Link to="/faq">FAQs</Link></li>
             <li><Link to="/privacy">Privacy Policy</Link></li>
             <li><Link to="/terms">Terms of Service</Link></li>
           </ul>
         </div>
       </div>
-      
+
       <div className="footer-bottom">
         <div className="container">
           <p>&copy; {new Date().getFullYear()} UpNext. All rights reserved.</p>

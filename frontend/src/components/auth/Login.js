@@ -65,6 +65,11 @@ function Login() {
           Don't have an account?{' '}
           <Link to="/signup" className="link-button">Sign Up</Link>
         </p>
+
+        <p>
+          Forgot your password?{' '}
+          <Link to="/forgot-password" classname="link-button">Reset Password</Link>
+        </p>
       </div>
     </div>
   );
