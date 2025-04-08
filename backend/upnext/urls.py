@@ -62,6 +62,7 @@ router.register(r"venue-categories", VenueCategoryViewSet)
 router.register(r"venue-amenities", VenueAmenityViewSet)
 router.register(r"venue-bookings", VenueBookingViewSet, basename="venuebooking")
 
+
 # Register ticket routes
 router.register(r"tickets", TicketViewSet, basename="ticket")
 router.register(
@@ -129,6 +130,30 @@ urlpatterns = [
     ),
     # Auth
     path("api-auth/", include("rest_framework.urls")),
+    # password reset
+    path(
+        "api/password-reset/",
+        auth_views.PasswordResetView.as_view(),
+        name="password_reset",
+    ),
+    # path("password-reset/", CustomPasswordResetView.as_view(), name="password_reset"),
+    path(
+        "api/password-reset/done/",
+        auth_views.PasswordResetDoneView.as_view(),
+        name="password_reset_done",
+    ),
+    path(
+        "api/reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(),
+        name="password_reset_confirm",
+    ),
+    path(
+        "api/reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(),
+        name="password_reset_complete",
+    ),
+    # CSRF endpoint
+    path("api/", include("users.urls")),
 ]
 
 # Serve media files in development

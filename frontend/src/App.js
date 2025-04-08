@@ -17,6 +17,7 @@ import Privacy from './components/help/privacy';
 import Contact from './components/help/contact';
 import Terms from './components/help/terms';
 import FAQs from './components/help/faq';
+import ForgotPassword from './components/forgotpassword/forgotpassword';
 import ExploreVenues from "./components/venues/ExploreVenues";
 import VenueDetail from "./components/venues/VenueDetail";
 import CreateVenue from "./components/venues/CreateVenue";
@@ -128,6 +129,14 @@ function App() {
                 <CreateEvent />
               </Layout>
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <layout>
+              <ForgotPassword />
+            </layout>
           }
         />
         <Route path="/about" element={<About />} />
