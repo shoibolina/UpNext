@@ -190,8 +190,16 @@ You can access the Swagger documentation of the API at:
 - `GET /api/v1/venues/` - List all venues
 - `POST /api/v1/venues/` - Create a venue
 - `GET /api/v1/venues/{id}/` - Retrieve a venue
-- `POST /api/v1/venues/{id}/bookings/` - Book a venue
-- `POST /api/v1/venues/{id}/reviews/` - Review a venue
+- `GET /api/v1/venues/{venue_id}/availability/` – Get availability slots for a venue
+- `POST /api/v1/venues/{venue_id}/availability/` – Create a venue availability slot
+- `PUT /api/v1/venues/{venue_id}/availability/{id}/` – Update venue availability slot
+- `DELETE /api/v1/venues/{venue_id}/availability/{id}/` – Delete venue availability slot
+- `GET /api/v1/venues/{venue_id}/bookings/` – View bookings for a specific venue
+- `POST /api/v1/venues/{venue_id}/bookings/` – Book a venue
+- `DELETE /api/v1/venues/{venue_id}/bookings/{id}/cancel/` – Cancel a booking
+- `GET /api/v1/venues/all-bookings/` – View all venue bookings (for all venues, used of venue owners only)
+- `GET /api/v1/venues/{venue_id}/reviews/` – List reviews for a venue
+- `POST /api/v1/venues/{venue_id}/reviews/` – Submit a review
 
 ## Peer Tasks
 - `Create a Check-In System for events & users (Functionalities do not have to be limited to those suggested below)`
