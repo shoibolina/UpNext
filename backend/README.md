@@ -11,7 +11,6 @@ UpNext is a comprehensive web-based platform designed to connect community membe
 - [Connecting to Frontend](#connecting-to-frontend)
 - [Development Workflow](#development-workflow)
 - [Future Enhancements](#future-enhancements)
-- [Peer Group Tasks](#peer-tasks)
 
 ## Features
 
@@ -200,13 +199,5 @@ You can access the Swagger documentation of the API at:
 - `GET /api/v1/venues/all-bookings/` – View all venue bookings (for all venues, used of venue owners only)
 - `GET /api/v1/venues/{venue_id}/reviews/` – List reviews for a venue
 - `POST /api/v1/venues/{venue_id}/reviews/` – Submit a review
-
-## Peer Tasks
-- `Create a Check-In System for events & users (Functionalities do not have to be limited to those suggested below)`
-- `Visual updates to the front end (Option to cancel check-in, Updates to user dashboard for events requiring check-in )`
-- `Page for event owner to see who has checked in`
-- `Individual ID or QR code type verification (like CORQ)`
-- `Additional option added to event creation for events that require check-in (check-in time start & end)`
-- `Disable check in button after the time has passed`
 
 
