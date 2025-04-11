@@ -18,6 +18,11 @@ import Contact from './components/help/contact';
 import Terms from './components/help/terms';
 import FAQs from './components/help/faq';
 import ForgotPassword from './components/forgotpassword/forgotpassword';
+import ExploreVenues from "./components/venues/ExploreVenues";
+import VenueDetail from "./components/venues/VenueDetail";
+import CreateVenue from "./components/venues/CreateVenue";
+import ManageAvailability from './components/venues/ManageAvailability';
+import BookVenueForm from './components/venues/BookVenueForm';
 
 import './App.css';
 
@@ -139,6 +144,50 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/faq" element={<FAQs />} />
         <Route path="/terms" element={<Terms />} />
+
+        {/* Venue routes */}
+        <Route
+          path="/venues"
+          element={
+            <Layout>
+              <ExploreVenues />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/venues/:id"
+          element={
+            <Layout>
+              <VenueDetail />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/create-venue"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CreateVenue />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/venues/:id/availability"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ManageAvailability />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/venues/:id/book" element={<BookVenueForm />} />
+
+
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
