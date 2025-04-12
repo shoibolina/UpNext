@@ -1,3 +1,11 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+               Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', 
+               sans-serif;
+  -webkit-font-smoothing: antialiased; /* Smoother text on Mac */
+  text-rendering: optimizeLegibility;
+}
+
 .events-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -126,6 +134,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 15px;
   }
   
   .event-price {
@@ -179,7 +188,18 @@
   .btn-secondary:hover {
     background-color: #e5e5e5;
   }
+
+  .create-event-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+  }
   
+  .create-event-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+  }
+
   /* src/components/events/CreateEvent.css */
   .create-event-container {
     max-width: 800px;
@@ -461,4 +481,44 @@
   .detail-item p {
     margin: 0;
     color: #333;
+  }
+
+  /* Regularize style of buttons */
+  .btn-primary, 
+  .delete-btn, 
+  .create-event-btn {
+  font-size: 16px !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+  line-height: 1.5;
+}
+
+  .event-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .delete-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    transition: background-color 0.2s;
+    
+  }
+  
+  .delete-btn:hover {
+    background-color: #c82333;
+  }
+  
+  .event-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
   }

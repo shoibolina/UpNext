@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import * as eventServices from '../../services/eventServices';
 import './Events.css';
+import authService from '../../services/authService';
 
 function Events() {
   const [events, setEvents] = useState([]);
@@ -14,9 +15,16 @@ function Events() {
     date: 'upcoming',
     is_free: '',
   });
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // Fetch events and categories on component mount
+  // Fetch events, current user and categories on component mount
   useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
+    };
+    
+    fetchCurrentUser();
     fetchEvents();
     fetchCategories();
   }, []);
@@ -81,6 +89,19 @@ function Events() {
     fetchEvents(formatFilters());
   };
 
+  // Handle deleting posted events
+  const handleDeleteEvent = async (eventId) => {
+    if (window.confirm('Are you sure you want to delete this event?')) {
+      try {
+        await eventServices.deleteEvent(eventId);
+        setEvents(events.filter(event => event.id !== eventId));
+      } catch (err) {
+        console.error('Error deleting event:', err);
+        setError('Failed to delete event. Please try again.');
+      }
+    }
+  };
+
   // Format date for display
   const formatEventDate = (startDate, startTime) => {
     if (!startDate || !startTime) return '';
@@ -110,6 +131,12 @@ function Events() {
       <h1>Explore Events</h1>
       
       {error && <div className="error-message">{error}</div>}
+      
+      <div className="create-event-header">
+        <Link to="/create-event" className="btn-primary create-event-btn">
+          Create New Event
+        </Link>
+      </div>
       
       <div className="events-filters">
         <form onSubmit={handleSearch} className="filter-form">
@@ -172,7 +199,6 @@ function Events() {
         {events.length === 0 ? (
           <div className="empty-state">
             <p>No events found.</p>
-            <Link to="/create-event" className="btn-primary">Create an Event</Link>
           </div>
         ) : (
           events.map(event => (
@@ -205,7 +231,23 @@ function Events() {
                   <span className="event-price">
                     {event.is_free ? 'Free' : `$${event.price}`}
                   </span>
-                  <Link to={`/events/${event.id}`} className="btn-primary">View Details</Link>
+                  
+                  <div className="event-actions">
+                    <Link to={`/events/${event.id}`} className="btn-primary">View Details</Link>
+                    
+                    {currentUser && currentUser.id === event.organizer.id && (
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDeleteEvent(event.id);
+                        }}
+                        className="delete-btn"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
