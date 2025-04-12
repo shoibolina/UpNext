@@ -220,7 +220,7 @@ Create a Check-In System for events & users (Functionalities do not have to be l
 -Individual ID or QR code type verification (like CORQ)
 -Additional option added to event creation for events that require check-in (check-in time start & end)
 -Disable check in button after the time has passed
-# Sprint 4 Implementation Tasks
+# Sprint 4 Implementation Tasks (choose any five that you guys find it easier to do)
 
 ## Task 1: Real-Time Messaging System
 Implementation of a comprehensive messaging system allowing users and event organizers to communicate directly through the platform with real-time capabilities.
@@ -269,3 +269,11 @@ Key Features:
 - Calendar export functionality (iCal, Google Calendar)
 - Event reminders and conflict detection
 - Recurring event support
+
+## Task 6: make the ui consistent across all the pages
+
+
+## Task 7: create a dashboard for event analytics for organizers
+## Task 8: add share event functionality
+## Task 9: build a calener view for upcoming events
+## Task 10: implement event bookmarking like show all the favorite events in a page
