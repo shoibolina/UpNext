@@ -14,6 +14,14 @@ class User(AbstractUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     is_event_organizer = models.BooleanField(default=False)
     is_venue_owner = models.BooleanField(default=False)
+    
+    # T2 Add a following/followers relationship
+    following = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        related_name='followers',
+        blank=True
+    )
 
     # Using email as the username field
     USERNAME_FIELD = "email"

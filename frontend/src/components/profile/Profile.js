@@ -32,6 +32,40 @@ const TextAreaField = ({ label, name, value, onChange, rows = 4 }) => (
 
 const ErrorMessage = ({ message }) => message && <div className="error-message">{message}</div>;
 
+const FollowButton = ({ userId, isFollowing, onFollowToggle }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    const endpoint = isFollowing ? `unfollow` : `follow`;
+    try {
+      await fetch(`/api/users/${userId}/${endpoint}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      onFollowToggle(userId);
+    } catch (err) {
+      console.error(`Error trying to ${endpoint}:`, err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      className="btn-secondary"
+      onClick={handleClick}
+      disabled={loading}
+      style={{ marginLeft: '10px' }}
+    >
+      {loading ? 'Loading...' : isFollowing ? 'Unfollow' : 'Follow'}
+    </button>
+  );
+};
+
 function Profile() {
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -53,7 +87,6 @@ function Profile() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch user data on component mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -63,7 +96,14 @@ function Profile() {
         }
 
         const user = await authService.getCurrentUser();
-        setUserData(user);
+        console.log('Fetched user:', user);
+
+        setUserData({
+          ...user,
+          followers: user.followers || [],
+          following: user.following || []
+        });
+
         setFormData({
           first_name: user.first_name || '',
           last_name: user.last_name || '',
@@ -150,17 +190,10 @@ function Profile() {
 
             <div className="profile-details">
               <h3>Personal Information</h3>
-              <div className="detail-item">
-                <strong>First Name:</strong> {userData.first_name || 'Not set'}
-              </div>
-              <div className="detail-item">
-                <strong>Last Name:</strong> {userData.last_name || 'Not set'}
-              </div>
-              <div className="detail-item">
-                <strong>Bio:</strong> {userData.bio || 'No bio available'}
-              </div>
-              <div className="detail-item">
-                <strong>User Type:</strong>
+              <div className="detail-item"><strong>First Name:</strong> {userData.first_name || 'Not set'}</div>
+              <div className="detail-item"><strong>Last Name:</strong> {userData.last_name || 'Not set'}</div>
+              <div className="detail-item"><strong>Bio:</strong> {userData.bio || 'No bio available'}</div>
+              <div className="detail-item"><strong>User Type:</strong>
                 {userData.is_event_organizer && 'Event Organizer'}
                 {userData.is_event_organizer && userData.is_venue_owner && ' & '}
                 {userData.is_venue_owner && 'Venue Owner'}
@@ -168,34 +201,71 @@ function Profile() {
               </div>
 
               <h3>Contact Information</h3>
-              <div className="detail-item">
-                <strong>Phone:</strong> {userData.profile?.phone_number || 'Not provided'}
-              </div>
-              <div className="detail-item">
-                <strong>Address:</strong> {userData.profile?.address || 'Not provided'}
-              </div>
-              <div className="detail-item">
-                <strong>City:</strong> {userData.profile?.city || 'Not provided'}
-              </div>
-              <div className="detail-item">
-                <strong>State:</strong> {userData.profile?.state || 'Not provided'}
-              </div>
-              <div className="detail-item">
-                <strong>ZIP Code:</strong> {userData.profile?.zip_code || 'Not provided'}
-              </div>
+              <div className="detail-item"><strong>Phone:</strong> {userData.profile?.phone_number || 'Not provided'}</div>
+              <div className="detail-item"><strong>Address:</strong> {userData.profile?.address || 'Not provided'}</div>
+              <div className="detail-item"><strong>City:</strong> {userData.profile?.city || 'Not provided'}</div>
+              <div className="detail-item"><strong>State:</strong> {userData.profile?.state || 'Not provided'}</div>
+              <div className="detail-item"><strong>ZIP Code:</strong> {userData.profile?.zip_code || 'Not provided'}</div>
+              <div className="detail-item"><strong>Member Since:</strong> {new Date(userData.date_joined).toLocaleDateString()}</div>
 
-              <div className="detail-item">
-                <strong>Member Since:</strong> {new Date(userData.date_joined).toLocaleDateString()}
-              </div>
+              <h3>Social</h3>
+              <div className="detail-item"><strong>Following:</strong> {userData.following.length} user(s)</div>
+              <div className="detail-item"><strong>Followers:</strong> {userData.followers.length} user(s)</div>
+
+              {userData.following.length > 0 && (
+                <div className="detail-item">
+                  <strong>Following List:</strong>
+                  <ul>
+                    {userData.following.map((u, i) => (
+                      <li key={i}>
+                        {u.username}
+                        <FollowButton
+                          userId={u.id}
+                          isFollowing={userData.following.some(f => f.id === u.id)}
+                          onFollowToggle={(targetId) => {
+                            setUserData(prev => ({
+                              ...prev,
+                              following: prev.following.some(f => f.id === targetId)
+                                ? prev.following.filter(f => f.id !== targetId)
+                                : [...prev.following, u]
+                            }));
+                          }}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {userData.followers.length > 0 && (
+                <div className="detail-item">
+                  <strong>Followers List:</strong>
+                  <ul>
+                    {userData.followers.map((u, i) => (
+                      <li key={i}>
+                        {u.username}
+                        <FollowButton
+                          userId={u.id}
+                          isFollowing={userData.following.some(f => f.id === u.id)}
+                          onFollowToggle={(targetId) => {
+                            setUserData(prev => ({
+                              ...prev,
+                              following: prev.following.some(f => f.id === targetId)
+                                ? prev.following.filter(f => f.id !== targetId)
+                                : [...prev.following, u]
+                            }));
+                          }}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div className="profile-actions">
-              <button className="btn-secondary" onClick={() => setIsEditing(true)}>
-                Edit Profile
-              </button>
-              <button className="btn-secondary" onClick={() => navigate('/dashboard')}>
-                Back to Dashboard
-              </button>
+              <button className="btn-secondary" onClick={() => setIsEditing(true)}>Edit Profile</button>
+              <button className="btn-secondary" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
             </div>
           </>
         ) : (
@@ -208,33 +278,17 @@ function Profile() {
             <h3>User Type</h3>
             <div className="checkbox-container">
               <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="is_event_organizer"
-                  checked={formData.is_event_organizer}
-                  onChange={handleChange}
-                />
+                <input type="checkbox" name="is_event_organizer" checked={formData.is_event_organizer} onChange={handleChange} />
                 I want to organize events
               </label>
               <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="is_venue_owner"
-                  checked={formData.is_venue_owner}
-                  onChange={handleChange}
-                />
+                <input type="checkbox" name="is_venue_owner" checked={formData.is_venue_owner} onChange={handleChange} />
                 I want to list venues
               </label>
             </div>
 
             <h3>Contact Information</h3>
-            <InputField
-              label="Phone Number"
-              name="profile_phone_number"
-              value={formData.profile.phone_number}
-              onChange={handleChange}
-              type="tel"
-            />
+            <InputField label="Phone Number" name="profile_phone_number" value={formData.profile.phone_number} onChange={handleChange} type="tel" />
             <InputField label="Address" name="profile_address" value={formData.profile.address} onChange={handleChange} />
             <InputField label="City" name="profile_city" value={formData.profile.city} onChange={handleChange} />
             <InputField label="State" name="profile_state" value={formData.profile.state} onChange={handleChange} />
@@ -244,11 +298,7 @@ function Profile() {
               <button type="submit" className="btn-primary" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Changes'}
               </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setIsEditing(false)}
-              >
+              <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)}>
                 Cancel
               </button>
             </div>

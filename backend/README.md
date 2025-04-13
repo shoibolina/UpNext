@@ -131,8 +131,8 @@ UpNext is a comprehensive web-based platform designed to connect community membe
        'default': {
            'ENGINE': 'django.db.backends.postgresql',
            'NAME': 'upnext',  # Your DB name
-           'USER': 'postgres',  # Your DB user
-           'PASSWORD': 'postgres',  # Your DB password
+           'USER': 'syd',  # Your DB user
+           'PASSWORD': 'syd',  # Your DB password
            'HOST': 'localhost',
            'PORT': '5432',
        }

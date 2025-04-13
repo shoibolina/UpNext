@@ -11,6 +11,9 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.views import PasswordResetView
 
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
 @ensure_csrf_cookie
 def init_csrf(request):
@@ -18,6 +21,8 @@ def init_csrf(request):
 
 
 User = get_user_model()
+
+
 
 class RegisterView(generics.CreateAPIView):
     """
@@ -84,6 +89,28 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+    
+    # T2
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def follow(self, request, pk=None):
+        """
+        Follow a user.
+        """
+        target_user = self.get_object()
+        if target_user == request.user:
+            return Response({'error': 'You cannot follow yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        request.user.following.add(target_user)
+        return Response({'message': f'You followed {target_user.email}'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def unfollow(self, request, pk=None):
+        """
+        Unfollow a user.
+        """
+        target_user = self.get_object()
+        request.user.following.remove(target_user)
+        return Response({'message': f'You unfollowed {target_user.email}'}, status=status.HTTP_200_OK)
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     """
