@@ -114,21 +114,42 @@ class UserViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def suggest_friends_by_city(self, request):
-        """
-        API endpoint that returns a list of suggested friends who live in the same city.
-        """
-        current_user = request.user
-        city_profiles = get_city_friend_signatures(current_user)
-
-        suggestions = []
-        while len(suggestions) < 5 and city_profiles:
+        try:
+            current_user = request.user
+            # Check if user profile exists
+            if not hasattr(current_user, 'profile'):
+                return Response({'error': 'User profile not found'}, status=status.HTTP_404_NOT_FOUND)
+                
+            # Check if city is set
+            current_city = current_user.profile.city
+            if not current_city:
+                return Response({'message': 'No city set in your profile.'}, status=status.HTTP_204_NO_CONTENT)
+            
+            # Get suggestions
+            city_profiles = get_friend_suggestions(current_user)
+            
+            # Filter out users you already follow
+            already_following = current_user.following.all()
+            city_profiles = city_profiles.exclude(user__in=already_following)
+            
+            # Create response data
+            suggestions = []
             for profile in city_profiles:
                 user_serializer = UserSerializer(profile.user, context={'request': request})
                 suggestions.append({
                     'user': user_serializer.data,
                     'city': profile.city,
                 })
-        return Response({'suggestions': suggestions})
+                
+            if not suggestions:
+                return Response({'message': 'No new suggestions available.'}, status=status.HTTP_200_OK)
+                
+            return Response({'suggestions': suggestions})
+            
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
