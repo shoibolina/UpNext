@@ -491,3 +491,38 @@ class UserProfileViewSetTests(APITestCase):
         # Verify the profile wasn't updated
         other_user.profile.refresh_from_db()
         self.assertEqual(other_user.profile.phone_number, '')
+
+
+class CityFriendSuggestionTest(TestCase):
+    def setUp(self):
+        # Create two cities for testing.
+        self.city1 = "New York"
+        self.city2 = "Los Angeles"
+
+        # Create users with different cities.
+        self.user1 = User.objects.create_user(username='user1', email='user1@example.com', password='pass')
+        profile1 = self.user1.profile
+        profile1.city = self.city1
+        profile1.save()
+        
+        self.user2 = User.objects.create_user(username='user2', email='user2@example.com', password='pass')
+        profile2 = self.user2.profile
+        profile2.city = self.city1  # Same city as user1
+        profile2.save()
+
+        self.user3 = User.objects.create_user(username='user3', email='user3@example.com', password='pass')
+        profile3 = self.user3.profile
+        profile3.city = self.city2  # Different city from user1
+        profile3.save()
+
+        self.client = APIClient()
+
+    def test_suggestions_by_city(self):
+        self.client.login(email='user1@example.com', password='pass')
+        response = self.client.get('/api/users/suggest_friends_by_city/')
+        self.assertEqual(response.status_code, 200)
+        suggestions = response.data['suggestions']
+        # Should only include user2 (from New York) and not user3
+        emails = [suggestion['user']['email'] for suggestion in suggestions]
+        self.assertIn('user2@example.com', emails)
+        self.assertNotIn('user3@example.com', emails)

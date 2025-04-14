@@ -111,6 +111,25 @@ class UserViewSet(viewsets.ModelViewSet):
         target_user = self.get_object()
         request.user.following.remove(target_user)
         return Response({'message': f'You unfollowed {target_user.email}'}, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def suggest_friends_by_city(self, request):
+        """
+        API endpoint that returns a list of suggested friends who live in the same city.
+        """
+        current_user = request.user
+        city_profiles = get_city_friend_signatures(current_user)
+
+        suggestions = []
+        while len(suggestions) < 5 and city_profiles:
+            for profile in city_profiles:
+                user_serializer = UserSerializer(profile.user, context={'request': request})
+                suggestions.append({
+                    'user': user_serializer.data,
+                    'city': profile.city,
+                })
+        return Response({'suggestions': suggestions})
+
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     """
@@ -128,3 +147,16 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         if self.request.user.is_staff:
             return UserProfile.objects.all()
         return UserProfile.objects.filter(user=self.request.user)
+
+def get_friend_suggestions(current_user):
+    """
+    Get friend suggestions for the current user based on city.
+    """
+    current_city = current_user.profile.city
+    if not current_city:
+        # If the current user's city is not set, return an empty
+        return UserProfile.objects.none()
+
+    suggestions = UserProfile.objects.filter(city=current_city).exclude(user=current_user)
+    
+    return suggestions
