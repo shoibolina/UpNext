@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from .models import Event, EventCategory, EventAttendee, EventComment
+from .models import Event, EventCategory, EventAttendee, EventComment, EventBookmark
 from .serializers import (
     EventSerializer, EventDetailSerializer, EventCategorySerializer,
     EventAttendeeSerializer, EventCommentSerializer
@@ -90,6 +90,43 @@ class EventViewSet(viewsets.ModelViewSet):
         if self.action == 'retrieve':
             return EventDetailSerializer
         return EventSerializer
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def bookmark(self, request, pk=None):
+        """
+        Bookmark or unbookmark an event.
+        """
+        event = self.get_object()
+        user = request.user
+        
+        # Check if already bookmarked
+        bookmark, created = EventBookmark.objects.get_or_create(
+            user=user,
+            event=event
+        )
+        
+        if created:
+            return Response({'status': 'event bookmarked'}, status=status.HTTP_201_CREATED)
+        else:
+            # If already bookmarked, remove the bookmark
+            bookmark.delete()
+            return Response({'status': 'bookmark removed'}, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def bookmarked(self, request):
+        """
+        Get all bookmarked events for the current user.
+        """
+        user = request.user
+        bookmarked_events = Event.objects.filter(bookmarks__user=user)
+        
+        page = self.paginate_queryset(bookmarked_events)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = self.get_serializer(bookmarked_events, many=True)
+        return Response(serializer.data)
     
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def attend(self, request, pk=None):

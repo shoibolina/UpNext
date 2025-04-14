@@ -44,25 +44,19 @@ class Event(models.Model):
     description = models.TextField()
     organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='organized_events')
     categories = models.ManyToManyField(EventCategory, related_name='events')
-    
     start_date = models.DateField()
     start_time = models.TimeField()
     end_date = models.DateField()
     end_time = models.TimeField()
-    
     venue = models.ForeignKey('venues.Venue', on_delete=models.SET_NULL, null=True, blank=True, related_name='events')
     address = models.CharField(max_length=255, blank=True)  # If not using a registered venue
-    
     recurrence = models.CharField(max_length=20, choices=RECURRENCE_CHOICES, default='none')
     visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='public')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
-    
     capacity = models.PositiveIntegerField(null=True, blank=True)
     is_free = models.BooleanField(default=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    
     image = models.ImageField(upload_to='event_images/', blank=True, null=True)
-    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -108,3 +102,19 @@ class EventComment(models.Model):
     
     def __str__(self):
         return f"Comment by {self.user.email} on {self.event.title}"
+
+
+class EventBookmark(models.Model):
+    """
+    Tracks users' bookmarked (favorite) events
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='event_bookmarks')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='bookmarks')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'event')  
+        ordering = ['-created_at']  
+    
+    def __str__(self):
+        return f"{self.user.email} bookmarked {self.event.title}"

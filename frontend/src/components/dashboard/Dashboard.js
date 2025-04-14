@@ -11,17 +11,18 @@ function Dashboard() {
   const [userData, setUserData] = useState(null);
   const [myEvents, setMyEvents] = useState([]);
   const [attendingEvents, setAttendingEvents] = useState([]);
+  const [bookmarkedEvents, setBookmarkedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('events');
   const location = useLocation();
     
-    useEffect(() => {
-      const tabFromNav = location.state?.tab;
-      if (tabFromNav) {
-        setActiveTab(tabFromNav);
-      }
-    }, [location.state]);
+  useEffect(() => {
+    const tabFromNav = location.state?.tab;
+    if (tabFromNav) {
+      setActiveTab(tabFromNav);
+    }
+  }, [location.state]);
 
   const navigate = useNavigate();
 
@@ -37,16 +38,26 @@ function Dashboard() {
         const user = await authService.getCurrentUser();
         setUserData(user);
 
-        const [organizedEvents, allEvents] = await Promise.all([
+        const [organizedEvents, allEvents, favorites] = await Promise.all([
           eventServices.getEvents({ organizer: user.id }),
-          eventServices.getEvents()
+          eventServices.getEvents(),
+          eventServices.getBookmarkedEvents()
         ]);
 
         // Ensure we're working with arrays
         const myEventsArray = Array.isArray(organizedEvents) ? organizedEvents : [];
         const allEventsArray = Array.isArray(allEvents) ? allEvents : [];
+        
+        // Handle both possible response formats for bookmarked events
+        let favoritesArray = [];
+        if (favorites.results && Array.isArray(favorites.results)) {
+          favoritesArray = favorites.results;
+        } else if (Array.isArray(favorites)) {
+          favoritesArray = favorites;
+        }
 
         setMyEvents(myEventsArray);
+        setBookmarkedEvents(favoritesArray);
         
         // Filter events the user is attending
         setAttendingEvents(allEventsArray.filter(event => event.is_attending));
@@ -67,6 +78,16 @@ function Dashboard() {
       setAttendingEvents(prev => prev.filter(e => e.id !== eventId));
     } catch {
       setError('Failed to cancel registration.');
+    }
+  };
+
+  const handleRemoveBookmark = async (eventId) => {
+    try {
+      await eventServices.bookmarkEvent(eventId);
+      setBookmarkedEvents(prev => prev.filter(e => e.id !== eventId));
+    } catch (err) {
+      console.error('Error removing bookmark:', err);
+      setError('Failed to remove from favorites.');
     }
   };
 
@@ -93,13 +114,16 @@ function Dashboard() {
       </div>
 
       <div className="dashboard-tabs">
-        {['events', 'attending', userData.is_venue_owner && 'venues', 'bookings'].filter(Boolean).map(tab => (
+        {['events', 'attending', 'favorites', userData.is_venue_owner && 'venues', 'bookings'].filter(Boolean).map(tab => (
           <button
             key={tab}
             className={`tab-button ${activeTab === tab ? 'active' : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === 'events' ? 'My Events' : tab === 'attending' ? 'Attending' : tab === 'venues' ? 'My Venues' : 'My Bookings'}
+            {tab === 'events' ? 'My Events' : 
+             tab === 'attending' ? 'Attending' : 
+             tab === 'venues' ? 'My Venues' : 
+             tab === 'favorites' ? 'Favorites' : 'My Bookings'}
           </button>
         ))}
       </div>
@@ -145,6 +169,28 @@ function Dashboard() {
           />
         )}
 
+        {activeTab === 'favorites' && (
+          <DashboardSection
+            title="Your Favorite Events"
+            emptyMessage="You haven't added any events to your favorites yet."
+            emptyLink={{ to: '/events', text: 'Explore Events' }}
+            events={bookmarkedEvents || []}
+            renderActions={(event) => (
+              <>
+                <Link to={`/events/${event.id}`} className="btn-secondary">View</Link>
+                <button
+                  className="btn-secondary btn-cancel"
+                  onClick={() => handleRemoveBookmark(event.id)}
+                >
+                  Remove
+                </button>
+              </>
+            )}
+            formatEventDate={formatEventDate}
+            showOrganizer
+          />
+        )}
+
         {activeTab === 'venues' && <MyVenues />}
         {activeTab === 'bookings' && <MyBookings />}
       </div>
@@ -179,6 +225,9 @@ function DashboardSection({ title, events = [], emptyMessage, emptyLink, renderA
                 )}
                 {'attendees_count' in event && (
                   <p className="event-attendees">{event.attendees_count} attendees</p>
+                )}
+                {event.is_free !== undefined && (
+                  <p className="event-price">{event.is_free ? 'Free' : `$${event.price}`}</p>
                 )}
               </div>
               <div className="event-actions">{renderActions(event)}</div>

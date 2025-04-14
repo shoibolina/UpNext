@@ -153,6 +153,37 @@ export const deleteEvent = async (eventId) => {
   }
 };
 
+// Bookmark or unbookmark an event
+export const bookmarkEvent = async (eventId) => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to bookmark an event');
+    }
+    
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/bookmark/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Error bookmarking event:', error);
+    throw error;
+  }
+};
+
+// Get bookmarked events
+export const getBookmarkedEvents = async () => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to get bookmarked events');
+    }
+    
+    return await apiRequest(`${API_URL}/api/v1/events/bookmarked/`);
+  } catch (error) {
+    console.error('Error fetching bookmarked events:', error);
+    throw error;
+  }
+};
+
 // Register for an event
 export const attendEvent = async (eventId) => {
   try {

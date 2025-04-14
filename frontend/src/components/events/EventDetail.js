@@ -20,6 +20,7 @@ function EventDetail() {
   const [showTicket, setShowTicket] = useState(false);
   const [ticketError, setTicketError] = useState(null);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const shareMenuRef = useRef(null);
 
   // Check authentication status
@@ -48,6 +49,7 @@ function EventDetail() {
         setLoading(true);
         const data = await eventServices.getEventById(id);
         setEvent(data);
+        setIsBookmarked(data.is_bookmarked);
       } catch (err) {
         console.error('Error fetching event details:', err);
         setError('Failed to load event details. The event may not exist or has been removed.');
@@ -94,6 +96,7 @@ function EventDetail() {
       
       const updatedEvent = await eventServices.getEventById(id);
       setEvent(updatedEvent);
+      setIsBookmarked(updatedEvent.is_bookmarked);
       
       if (response.ticket) {
         setTicket(response.ticket);
@@ -117,6 +120,7 @@ function EventDetail() {
       
       const updatedEvent = await eventServices.getEventById(id);
       setEvent(updatedEvent);
+      setIsBookmarked(updatedEvent.is_bookmarked);
       setTicket(null);
       setShowTicket(false);
       
@@ -145,10 +149,30 @@ function EventDetail() {
       
       const updatedEvent = await eventServices.getEventById(id);
       setEvent(updatedEvent);
+      setIsBookmarked(updatedEvent.is_bookmarked);
       setComment('');
     } catch (err) {
       console.error('Error adding comment:', err);
       alert(err.message || 'Failed to add comment. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+
+  const handleBookmark = async () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/events/${id}` } });
+      return;
+    }
+    
+    try {
+      setSubmitting(true);
+      await eventServices.bookmarkEvent(id);
+      setIsBookmarked(!isBookmarked);
+    } catch (err) {
+      console.error('Error bookmarking event:', err);
+      alert('Failed to bookmark event. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -387,6 +411,17 @@ function EventDetail() {
               <Link to={`/login?redirect=/events/${id}`} className="btn-primary">
                 Login to Register
               </Link>
+            )}
+            
+            {/* Bookmark Button */}
+            {isAuthenticated && (
+              <button 
+                onClick={handleBookmark} 
+                className={`btn-bookmark ${isBookmarked ? 'bookmarked' : ''}`}
+                disabled={submitting}
+              >
+                {isBookmarked ? 'Remove from Favorites' : 'Add to Favorites'}
+              </button>
             )}
             
             {/* Share Button with Dropdown */}

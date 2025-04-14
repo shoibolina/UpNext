@@ -211,6 +211,11 @@ const authService = {
     return localStorage.getItem('token');
   },
   
+  getAuthHeader: () => {
+    const token = localStorage.getItem('token');
+    return token ? `Bearer ${token}` : '';
+  },
+  
   updateProfile: async (userData) => {
     try {
       await authService.refreshTokenIfNeeded();

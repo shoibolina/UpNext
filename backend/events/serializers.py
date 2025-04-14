@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Event, EventCategory, EventAttendee, EventComment
+from .models import Event, EventCategory, EventAttendee, EventComment, EventBookmark
 from users.serializers import UserSerializer
 
 class EventCategorySerializer(serializers.ModelSerializer):
@@ -27,7 +27,7 @@ class EventSerializer(serializers.ModelSerializer):
     organizer = UserSerializer(read_only=True)
     categories = EventCategorySerializer(many=True, read_only=True)
     category_ids = serializers.PrimaryKeyRelatedField(
-        many=True, 
+        many=True,
         write_only=True,
         queryset=EventCategory.objects.all(),
         source='categories',
@@ -35,14 +35,16 @@ class EventSerializer(serializers.ModelSerializer):
     )
     attendees_count = serializers.SerializerMethodField()
     is_attending = serializers.SerializerMethodField()
+    is_bookmarked = serializers.SerializerMethodField()
     
     class Meta:
         model = Event
         fields = (
-            'id', 'title', 'slug', 'description', 'organizer', 'categories', 'category_ids',
-            'start_date', 'start_time', 'end_date', 'end_time', 'venue', 'address',
-            'recurrence', 'visibility', 'status', 'capacity', 'is_free', 'price',
-            'image', 'created_at', 'updated_at', 'attendees_count', 'is_attending'
+            'id', 'title', 'slug', 'description', 'organizer', 'categories',
+            'category_ids', 'start_date', 'start_time', 'end_date', 'end_time',
+            'venue', 'address', 'recurrence', 'visibility', 'status', 'capacity',
+            'is_free', 'price', 'image', 'created_at', 'updated_at',
+            'attendees_count', 'is_attending', 'is_bookmarked'
         )
         read_only_fields = ('id', 'slug', 'organizer', 'created_at', 'updated_at')
     
@@ -53,6 +55,12 @@ class EventSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return obj.attendees.filter(user=request.user, status='registered').exists()
+        return False
+    
+    def get_is_bookmarked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.bookmarks.filter(user=request.user).exists()
         return False
     
     def create(self, validated_data):
