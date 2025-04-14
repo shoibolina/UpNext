@@ -85,6 +85,10 @@ function Profile() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // New states for friend suggestions.
+  const [friendSuggestions, setFriendSuggestions] = useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(true);
+  const [suggestionsError, setSuggestionsError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -128,6 +132,43 @@ function Profile() {
 
     fetchUserData();
   }, [navigate]);
+
+  // Fetch friend suggestions based on the same city. Change the API endpoint as needed.
+  useEffect(() => {
+    const fetchFriendSuggestions = async () => {
+      try {
+        // const token = localStorage.getItem('token');
+        // console.log('Token availableL;', token);
+        // if (token) {
+        //   console.log('Token starts with:', token.substring(0, 10) + '...');
+        // }
+        const response = await fetch('http://localhost:8000/api/v1/users/suggest_friends_by_city/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'utf-8',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch friend suggestions');
+        }
+        const data = await response.json();
+        setFriendSuggestions(data.suggestions);
+      } catch (err) {
+        console.error('Error fetching friend suggestions:', err);
+        setSuggestionsError(err.message);
+      } finally {
+        setSuggestionsLoading(false);
+      }
+    };
+  
+    if (userData && userData.profile?.city) {
+      fetchFriendSuggestions();
+    } else {
+      // If no city is set, stop the loader.
+      setSuggestionsLoading(false);
+    }
+  }, [userData]);
 
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
@@ -260,6 +301,39 @@ function Profile() {
                     ))}
                   </ul>
                 </div>
+              )}
+            </div>
+            {/* NEW: Display Friend Suggestions */}
+            <div className="profile-friend-suggestions">
+              <h3>Friend Suggestions</h3>
+              {suggestionsLoading ? (
+                <div>Loading friend suggestions...</div>
+              ) : suggestionsError ? (
+                <div className="error">Error: {suggestionsError}</div>
+              ) : friendSuggestions.length > 0 ? (
+                <ul>
+                  {friendSuggestions.map((suggestion, idx) => (
+                    <li key={idx}>
+                      {suggestion.user.username} {suggestion.city && `(City: ${suggestion.city})`}
+                      <FollowButton
+                        userId={suggestion.user.id}
+                        // If you already follow the suggested user, check for that here:
+                        isFollowing={userData.following.some(f => f.id === suggestion.user.id)}
+                        onFollowToggle={(targetId) => {
+                          // Update your userData state based on the follow action.
+                          setUserData(prev => ({
+                            ...prev,
+                            following: prev.following.some(f => f.id === targetId)
+                              ? prev.following.filter(f => f.id !== targetId)
+                              : [...prev.following, suggestion.user]
+                          }));
+                        }}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div>No friend suggestions available.</div>
               )}
             </div>
 
