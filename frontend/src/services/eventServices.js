@@ -7,50 +7,50 @@ const apiRequest = async (url, options = {}) => {
   try {
     // Try to refresh token if needed
     await authService.refreshTokenIfNeeded();
-    
+
     // Get fresh token
     const token = authService.getToken();
-    
+
     // Set authorization header if token exists
     const headers = {
       ...options.headers,
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     };
-    
+
     // Make the request
     const response = await fetch(url, {
       ...options,
       headers
     });
-    
+
     // Handle 401 errors after token refresh attempt
     if (response.status === 401) {
       // If we're still getting 401 after refresh, user needs to login
       authService.logout();
       throw new Error('Your session has expired. Please log in again.');
     }
-    
+
     // Handle other errors
     if (!response.ok) {
       const contentType = response.headers.get('content-type');
       let errorData;
-      
+
       if (contentType && contentType.includes('application/json')) {
         errorData = await response.json();
       } else {
         errorData = { detail: await response.text() };
       }
-      
+
       const errorMsg = errorData.detail || 'API request failed';
       throw new Error(errorMsg);
     }
-    
+
     // Check content type
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       return await response.json();
     }
-    
+
     return await response.text();
   } catch (error) {
     console.error(`API request failed: ${url}`, error);
@@ -63,17 +63,17 @@ export const getEvents = async (filters = {}) => {
   try {
     // Build query string from filters
     const queryParams = new URLSearchParams();
-    
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         queryParams.append(key, value);
       }
     });
-    
+
     const data = await apiRequest(
       `${API_URL}/api/v1/events/?${queryParams.toString()}`
     );
-    
+
     // Handle both paginated and non-paginated responses
     if (data.results && Array.isArray(data.results)) {
       return data.results; // Return just the array of events
@@ -105,7 +105,7 @@ export const createEvent = async (eventData) => {
     if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to create an event');
     }
-    
+
     return await apiRequest(`${API_URL}/api/v1/events/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -123,7 +123,7 @@ export const updateEvent = async (eventId, eventData) => {
     if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to update an event');
     }
-    
+
     return await apiRequest(`${API_URL}/api/v1/events/${eventId}/`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -141,11 +141,11 @@ export const deleteEvent = async (eventId) => {
     if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to delete an event');
     }
-    
+
     await apiRequest(`${API_URL}/api/v1/events/${eventId}/`, {
       method: 'DELETE'
     });
-    
+
     return true;
   } catch (error) {
     console.error('Error deleting event:', error);
@@ -159,7 +159,7 @@ export const attendEvent = async (eventId) => {
     if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to register for an event');
     }
-    
+
     return await apiRequest(`${API_URL}/api/v1/events/${eventId}/attend/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
@@ -176,7 +176,7 @@ export const registerWithTicket = async (eventId, ticketType = 'standard') => {
     if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to register for an event');
     }
-    
+
     return await apiRequest(`${API_URL}/api/v1/events/${eventId}/register_with_ticket/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -194,7 +194,7 @@ export const cancelAttendance = async (eventId) => {
     if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to cancel registration');
     }
-    
+
     return await apiRequest(`${API_URL}/api/v1/events/${eventId}/cancel/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
@@ -211,7 +211,7 @@ export const addEventComment = async (eventId, content) => {
     if (!authService.isAuthenticated()) {
       throw new Error('Authentication required to add a comment');
     }
-    
+
     return await apiRequest(`${API_URL}/api/v1/events/${eventId}/comment/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -232,3 +232,41 @@ export const getEventCategories = async () => {
     throw error;
   }
 };
+
+// Upload multiple images for an event
+export const uploadEventImages = async (eventId, files) => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to upload images');
+    }
+
+    const token = authService.getToken();
+    const formData = new FormData();
+
+    for (const file of files) {
+      formData.append('image', file); // backend expects 'image'
+    }
+
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/images/`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`, // DO NOT include 'Content-Type' when sending FormData
+      },
+      body: formData,
+    });
+  } catch (error) {
+    console.error('Error uploading event images:', error);
+    throw error;
+  }
+};
+
+export const clearEventImages = async (eventId) => {
+  const token = authService.getToken();
+  return await apiRequest(`${API_URL}/api/v1/events/${eventId}/images/clear/`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+

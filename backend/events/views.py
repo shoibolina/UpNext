@@ -6,10 +6,10 @@ from django.db.models import Q
 from django.utils import timezone
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from .models import Event, EventCategory, EventAttendee, EventComment
+from .models import Event, EventCategory, EventAttendee, EventComment, EventImage
 from .serializers import (
     EventSerializer, EventDetailSerializer, EventCategorySerializer,
-    EventAttendeeSerializer, EventCommentSerializer
+    EventAttendeeSerializer, EventCommentSerializer, EventImageSerializer
 )
 from users.permissions import IsOwnerOrReadOnly, IsOrganizerOrReadOnly
 import logging
@@ -290,7 +290,7 @@ class EventCommentViewSet(viewsets.ModelViewSet):
     """
     serializer_class = EventCommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    
+
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return EventComment.objects.none()
@@ -311,3 +311,49 @@ class EventCommentViewSet(viewsets.ModelViewSet):
             logger.error(f"Error creating comment: {str(e)}")
             from rest_framework import serializers
             raise serializers.ValidationError(f"Error creating comment: {str(e)}")
+
+
+class EventImageViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for event images.
+    """
+    serializer_class = EventImageSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return EventImage.objects.none()
+
+        event_id = self.kwargs.get("event_pk")
+        if event_id:
+            return EventImage.objects.filter(event_id=event_id)
+        return EventImage.objects.none()
+
+    def create(self, request, *args, **kwargs):
+        event_id = self.kwargs.get("event_pk")
+        event = Event.objects.get(pk=event_id)
+
+        EventImage.objects.filter(event=event).delete()
+
+        uploaded_files = request.FILES.getlist("image")
+        results = []
+
+        for file in uploaded_files:
+            serializer = self.get_serializer(data={"image": file})
+            serializer.is_valid(raise_exception=True)
+            serializer.save(event=event)
+            results.append(serializer.data)
+
+        return Response(results, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["delete"], permission_classes=[permissions.IsAuthenticated])
+    def clear(self, request, event_pk=None):
+        if not event_pk:
+            return Response({"error": "Missing event ID"}, status=400)
+
+        images = EventImage.objects.filter(event_id=event_pk)
+        deleted_count = images.count()
+        images.delete()
+
+        return Response({"message": f"Deleted {deleted_count} images."}, status=200)
+

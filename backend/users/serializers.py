@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 
                   'bio', 'profile_picture', 'is_event_organizer', 
-                  'is_venue_owner', 'date_joined', 'profile')
+                  'is_venue_owner', 'date_joined', 'profile', 'profile_picture')
         read_only_fields = ('id', 'date_joined')
     
     def update(self, instance, validated_data):

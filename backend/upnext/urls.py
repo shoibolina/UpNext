@@ -9,6 +9,7 @@ from drf_yasg import openapi
 from rest_framework import permissions
 from django.contrib.auth import views as auth_views
 from users.views import init_csrf
+from events.views import EventImageViewSet
 
 # App views
 from users.views import UserViewSet, RegisterView, UserProfileViewSet
@@ -87,6 +88,16 @@ urlpatterns = [
     # API v1
     path("api/v1/", include(router.urls)),
     # Nested routes
+    path(
+        "api/v1/events/<int:event_pk>/images/clear/",
+        EventImageViewSet.as_view({"delete": "clear"}),
+        name="event-images-clear",
+    ),
+    path(
+        "api/v1/events/<int:event_pk>/images/",
+        EventImageViewSet.as_view({"get": "list", "post": "create"}),
+        name="event-images",
+    ),
     path(
         "api/v1/events/<int:event_pk>/attendees/",
         EventAttendeeViewSet.as_view({"get": "list"}),

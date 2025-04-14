@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Event, EventCategory, EventAttendee, EventComment
+from .models import Event, EventCategory, EventAttendee, EventComment, EventImage
 from users.serializers import UserSerializer
 
 class EventCategorySerializer(serializers.ModelSerializer):
@@ -61,9 +61,18 @@ class EventSerializer(serializers.ModelSerializer):
             validated_data['organizer'] = request.user
         return super().create(validated_data)
 
+class EventImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventImage
+        fields = ('id', 'event', 'image', 'caption', 'is_primary')
+        read_only_fields = ('id', 'event')
+
 class EventDetailSerializer(EventSerializer):
     comments = EventCommentSerializer(many=True, read_only=True)
     attendees = EventAttendeeSerializer(many=True, read_only=True)
-    
+    images = EventImageSerializer(many=True, read_only=True)
+
     class Meta(EventSerializer.Meta):
-        fields = EventSerializer.Meta.fields + ('comments', 'attendees')
+        fields = EventSerializer.Meta.fields + ('comments', 'attendees', 'images')
+
+

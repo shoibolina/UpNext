@@ -1,6 +1,6 @@
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
-               Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+               Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
                sans-serif;
   -webkit-font-smoothing: antialiased; /* Smoother text on Mac */
   text-rendering: optimizeLegibility;
@@ -11,19 +11,19 @@ body {
     margin: 0 auto;
     padding: 20px;
   }
-  
+
   .events-container h1 {
     margin-bottom: 20px;
     color: #333;
   }
-  
+
   .loading {
     text-align: center;
     margin: 50px 0;
     font-size: 18px;
     color: #666;
   }
-  
+
   .error-message {
     background-color: #fff3f3;
     color: #d32f2f;
@@ -32,7 +32,7 @@ body {
     margin-bottom: 20px;
     border-left: 4px solid #d32f2f;
   }
-  
+
   .events-filters {
     background-color: #f8f9fa;
     padding: 15px;
@@ -40,19 +40,19 @@ body {
     margin-bottom: 25px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
-  
+
   .filter-form {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
   }
-  
+
   .filter-group {
     flex: 1;
     min-width: 200px;
   }
-  
+
   .filter-group input,
   .filter-group select {
     width: 100%;
@@ -61,13 +61,13 @@ body {
     border-radius: 4px;
     font-size: 16px;
   }
-  
+
   .events-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 25px;
   }
-  
+
   .event-card {
     border-radius: 8px;
     overflow: hidden;
@@ -75,46 +75,46 @@ body {
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
   }
-  
+
   .event-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
   }
-  
+
   .event-image {
     height: 180px;
     overflow: hidden;
   }
-  
+
   .event-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
-  
+
   .event-content {
     padding: 16px;
   }
-  
+
   .event-content h3 {
     margin-top: 0;
     margin-bottom: 10px;
     font-size: 18px;
   }
-  
+
   .event-date {
     color: #555;
     font-size: 14px;
     margin-bottom: 10px;
   }
-  
+
   .event-categories {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
     margin-bottom: 10px;
   }
-  
+
   .event-category {
     background-color: #e6f7ff;
     color: #0080ff;
@@ -122,39 +122,39 @@ body {
     border-radius: 4px;
     font-size: 12px;
   }
-  
+
   .event-description {
     color: #555;
     font-size: 14px;
     line-height: 1.5;
     margin-bottom: 15px;
   }
-  
+
   .event-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 15px;
   }
-  
+
   .event-price {
     font-weight: 600;
     color: #333;
   }
-  
+
   .empty-state {
     text-align: center;
     padding: 50px 0;
     width: 100%;
     grid-column: 1 / -1;
   }
-  
+
   .empty-state p {
     color: #666;
     margin-bottom: 20px;
     font-size: 18px;
   }
-  
+
   .btn-primary {
     background-color: #0080ff;
     color: white;
@@ -167,11 +167,11 @@ body {
     display: inline-block;
     transition: background-color 0.2s;
   }
-  
+
   .btn-primary:hover {
     background-color: #0066cc;
   }
-  
+
   .btn-secondary {
     background-color: #f1f1f1;
     color: #333;
@@ -184,7 +184,7 @@ body {
     display: inline-block;
     transition: background-color 0.2s;
   }
-  
+
   .btn-secondary:hover {
     background-color: #e5e5e5;
   }
@@ -194,7 +194,7 @@ body {
     justify-content: flex-end;
     margin-bottom: 20px;
   }
-  
+
   .create-event-btn {
     padding: 10px 20px;
     font-size: 16px;
@@ -206,30 +206,30 @@ body {
     margin: 0 auto;
     padding: 20px;
   }
-  
+
   .create-event-container h1 {
     margin-bottom: 20px;
     color: #333;
   }
-  
+
   .event-form {
     background-color: white;
     padding: 25px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
-  
+
   .form-group {
     margin-bottom: 20px;
   }
-  
+
   .form-group label {
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
     color: #333;
   }
-  
+
   .form-group input,
   .form-group textarea,
   .form-group select {
@@ -239,76 +239,76 @@ body {
     border-radius: 4px;
     font-size: 16px;
   }
-  
+
   .form-group textarea {
     min-height: 120px;
     resize: vertical;
   }
-  
+
   .form-row {
     display: flex;
     gap: 15px;
     margin-bottom: 20px;
   }
-  
+
   .form-row .form-group {
     flex: 1;
     margin-bottom: 0;
   }
-  
+
   .checkbox-group {
     display: flex;
     align-items: center;
     gap: 10px;
   }
-  
+
   .checkbox-group input {
     width: auto;
   }
-  
+
   .checkbox-group label {
     margin-bottom: 0;
   }
-  
+
   .form-actions {
     display: flex;
     gap: 15px;
     margin-top: 30px;
   }
-  
+
   .categories-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 10px;
     margin-top: 10px;
   }
-  
+
   .category-checkbox {
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  
+
   .category-checkbox input {
     width: auto;
   }
-  
+
   /* src/components/events/EventDetail.css */
   .event-detail-container {
     max-width: 1100px;
     margin: 0 auto;
     padding: 20px;
   }
-  
+
   .event-detail-header {
     margin-bottom: 25px;
   }
-  
+
   .event-detail-header h1 {
     margin-bottom: 10px;
     color: #222;
   }
-  
+
   .event-meta {
     display: flex;
     justify-content: space-between;
@@ -316,107 +316,107 @@ body {
     flex-wrap: wrap;
     gap: 15px;
   }
-  
+
   .event-status {
     font-size: 14px;
   }
-  
+
   .status-published {
     color: #00a854;
   }
-  
+
   .status-draft {
     color: #faad14;
   }
-  
+
   .status-cancelled {
     color: #f5222d;
   }
-  
+
   .status-completed {
     color: #1890ff;
   }
-  
+
   .event-detail-content {
     display: grid;
     grid-template-columns: 3fr 1fr;
     gap: 30px;
   }
-  
+
   @media (max-width: 768px) {
     .event-detail-content {
       grid-template-columns: 1fr;
     }
   }
-  
+
   .event-main-info {
     background-color: white;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
-  
+
   .event-main-info .event-image {
     height: 300px;
   }
-  
+
   .event-info-section {
     padding: 20px;
     border-bottom: 1px solid #eee;
   }
-  
+
   .event-info-section:last-child {
     border-bottom: none;
   }
-  
+
   .event-info-section h2 {
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 20px;
     color: #333;
   }
-  
+
   .event-description {
     line-height: 1.6;
     color: #333;
   }
-  
+
   .event-comments {
     margin-top: 15px;
   }
-  
+
   .comment {
     padding: 15px;
     background-color: #f9f9f9;
     border-radius: 6px;
     margin-bottom: 15px;
   }
-  
+
   .comment-header {
     display: flex;
     justify-content: space-between;
     margin-bottom: 8px;
   }
-  
+
   .comment-author {
     font-weight: 600;
     color: #333;
   }
-  
+
   .comment-date {
     color: #999;
     font-size: 12px;
   }
-  
+
   .comment-content {
     margin: 0;
     color: #444;
   }
-  
+
   .comment-form {
     margin-top: 20px;
   }
-  
+
   .comment-form textarea {
     width: 100%;
     min-height: 100px;
@@ -427,13 +427,13 @@ body {
     font-size: 15px;
     resize: vertical;
   }
-  
+
   .event-sidebar {
     display: flex;
     flex-direction: column;
     gap: 20px;
   }
-  
+
   .event-actions {
     background-color: white;
     padding: 20px;
@@ -441,51 +441,51 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     text-align: center;
   }
-  
+
   .event-actions button {
     width: 100%;
     padding: 12px;
   }
-  
+
   .event-details-card {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
-  
+
   .detail-item {
     display: flex;
     gap: 15px;
     margin-bottom: 15px;
     align-items: flex-start;
   }
-  
+
   .detail-item:last-child {
     margin-bottom: 0;
   }
-  
+
   .detail-item i {
     color: #0080ff;
     font-size: 20px;
     width: 24px;
     text-align: center;
   }
-  
+
   .detail-item strong {
     display: block;
     margin-bottom: 4px;
     color: #555;
   }
-  
+
   .detail-item p {
     margin: 0;
     color: #333;
   }
 
   /* Regularize style of buttons */
-  .btn-primary, 
-  .delete-btn, 
+  .btn-primary,
+  .delete-btn,
   .create-event-btn {
   font-size: 16px !important;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -503,22 +503,68 @@ body {
     gap: 10px;
     align-items: center;
   }
-  
+
   .delete-btn {
     background-color: #dc3545;
     color: white;
     border: none;
     transition: background-color 0.2s;
-    
+
   }
-  
+
   .delete-btn:hover {
     background-color: #c82333;
   }
-  
+
   .event-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 15px;
   }
+.image-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.preview-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.preview-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 18px;
+}
+input[type="file"]::-webkit-file-upload-button {
+  visibility: visible;
+}
+
+input[type="file"]::file-selector-button {
+  visibility: visible;
+}
+
+input[type="file"] {
+  color: transparent;
+}

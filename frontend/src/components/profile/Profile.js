@@ -41,6 +41,7 @@ function Profile() {
     bio: '',
     is_event_organizer: false,
     is_venue_owner: false,
+    profile_picture: null,
     profile: {
       phone_number: '',
       address: '',
@@ -70,6 +71,7 @@ function Profile() {
           bio: user.bio || '',
           is_event_organizer: user.is_event_organizer || false,
           is_venue_owner: user.is_venue_owner || false,
+          profile_picture: null,
           profile: {
             phone_number: user.profile?.phone_number || '',
             address: user.profile?.address || '',
@@ -90,10 +92,19 @@ function Profile() {
   }, [navigate]);
 
   const handleChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked, files} = e.target;
+
+    if (name === 'profile_picture') {
+      const file = files[0];
+      setFormData((prev) => ({
+        ...prev,
+        profile_picture: files[0]
+      }));
+      return;
+    }
 
     setFormData((prev) => {
-      if (name.startsWith('profile_')) {
+      if (name.startsWith('profile_') && name !== 'profile_picture') {
         const field = name.replace('profile_', '');
         return {
           ...prev,
@@ -141,6 +152,14 @@ function Profile() {
       <ErrorMessage message={error} />
 
       <div className="profile-card">
+        {!isEditing && (
+            <img
+                src={userData.profile_picture || '/default-avatar.png'}
+                alt="Profile"
+                className="avatar"
+            />
+        )}
+
         {!isEditing ? (
           <>
             <div className="profile-header">
@@ -199,60 +218,74 @@ function Profile() {
             </div>
           </>
         ) : (
-          <form onSubmit={handleSubmit} className="profile-form">
-            <h3>Personal Information</h3>
-            <InputField label="First Name" name="first_name" value={formData.first_name} onChange={handleChange} />
-            <InputField label="Last Name" name="last_name" value={formData.last_name} onChange={handleChange} />
-            <TextAreaField label="Bio" name="bio" value={formData.bio} onChange={handleChange} />
+            <form onSubmit={handleSubmit} className="profile-form">
+              <h3>Personal Information</h3>
+              <InputField label="First Name" name="first_name" value={formData.first_name} onChange={handleChange}/>
+              <InputField label="Last Name" name="last_name" value={formData.last_name} onChange={handleChange}/>
+              <TextAreaField label="Bio" name="bio" value={formData.bio} onChange={handleChange}/>
 
-            <h3>User Type</h3>
-            <div className="checkbox-container">
-              <label className="checkbox-label">
+              <h3>Profile Picture</h3>
+              <div className="form-group">
+                <label htmlFor="profile_picture">Upload Profile Picture</label>
                 <input
-                  type="checkbox"
-                  name="is_event_organizer"
-                  checked={formData.is_event_organizer}
-                  onChange={handleChange}
+                    type="file"
+                    id="profile_picture"
+                    name="profile_picture"
+                    accept="image/*"
+                    onChange={handleChange}
                 />
-                I want to organize events
-              </label>
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="is_venue_owner"
-                  checked={formData.is_venue_owner}
+              </div>
+
+              <h3>User Type</h3>
+              <div className="checkbox-container">
+                <label className="checkbox-label">
+                  <input
+                      type="checkbox"
+                      name="is_event_organizer"
+                      checked={formData.is_event_organizer}
+                      onChange={handleChange}
+                  />
+                  I want to organize events
+                </label>
+                <label className="checkbox-label">
+                  <input
+                      type="checkbox"
+                      name="is_venue_owner"
+                      checked={formData.is_venue_owner}
+                      onChange={handleChange}
+                  />
+                  I want to list venues
+                </label>
+              </div>
+
+              <h3>Contact Information</h3>
+              <InputField
+                  label="Phone Number"
+                  name="profile_phone_number"
+                  value={formData.profile.phone_number}
                   onChange={handleChange}
-                />
-                I want to list venues
-              </label>
-            </div>
+                  type="tel"
+              />
+              <InputField label="Address" name="profile_address" value={formData.profile.address}
+                          onChange={handleChange}/>
+              <InputField label="City" name="profile_city" value={formData.profile.city} onChange={handleChange}/>
+              <InputField label="State" name="profile_state" value={formData.profile.state} onChange={handleChange}/>
+              <InputField label="ZIP Code" name="profile_zip_code" value={formData.profile.zip_code}
+                          onChange={handleChange}/>
 
-            <h3>Contact Information</h3>
-            <InputField
-              label="Phone Number"
-              name="profile_phone_number"
-              value={formData.profile.phone_number}
-              onChange={handleChange}
-              type="tel"
-            />
-            <InputField label="Address" name="profile_address" value={formData.profile.address} onChange={handleChange} />
-            <InputField label="City" name="profile_city" value={formData.profile.city} onChange={handleChange} />
-            <InputField label="State" name="profile_state" value={formData.profile.state} onChange={handleChange} />
-            <InputField label="ZIP Code" name="profile_zip_code" value={formData.profile.zip_code} onChange={handleChange} />
-
-            <div className="form-actions">
-              <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setIsEditing(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+              <div className="form-actions">
+                <button type="submit" className="btn-primary" disabled={loading}>
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
         )}
       </div>
     </div>

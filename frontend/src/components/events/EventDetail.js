@@ -69,21 +69,21 @@ function EventDetail() {
       navigate('/login', { state: { from: `/events/${id}` } });
       return;
     }
-    
+
     try {
       setSubmitting(true);
       setTicketError(null);
-      
+
       const response = await ticketService.generateTicket(id);
-      
+
       const updatedEvent = await eventServices.getEventById(id);
       setEvent(updatedEvent);
-      
+
       if (response.ticket) {
         setTicket(response.ticket);
         setShowTicket(true);
       }
-      
+
       alert('You have successfully registered for this event!');
     } catch (err) {
       console.error('Error attending event:', err);
@@ -98,12 +98,12 @@ function EventDetail() {
     try {
       setSubmitting(true);
       await eventServices.cancelAttendance(id);
-      
+
       const updatedEvent = await eventServices.getEventById(id);
       setEvent(updatedEvent);
       setTicket(null);
       setShowTicket(false);
-      
+
       alert('Your registration has been cancelled.');
     } catch (err) {
       console.error('Error cancelling attendance:', err);
@@ -115,18 +115,18 @@ function EventDetail() {
 
   const handleAddComment = async (e) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
       navigate('/login', { state: { from: `/events/${id}` } });
       return;
     }
-    
+
     if (!comment.trim()) return;
-    
+
     try {
       setSubmitting(true);
       await eventServices.addEventComment(id, comment);
-      
+
       const updatedEvent = await eventServices.getEventById(id);
       setEvent(updatedEvent);
       setComment('');
@@ -214,6 +214,16 @@ function EventDetail() {
 
       <div className="event-detail-content">
         <div className="event-main-info">
+          {event.images && event.images.length > 0 && (
+              <div className="event-image-gallery">
+                {event.images.map((img) => (
+                    <div key={img.id} className="event-gallery-item">
+                      <img src={img.image} alt={img.caption || 'Event image'} />
+                      {img.caption && <p className="img-caption">{img.caption}</p>}
+                    </div>
+                ))}
+              </div>
+          )}
           {event.image && (
             <div className="event-image">
               <img src={event.image} alt={event.title} />
@@ -263,8 +273,8 @@ function EventDetail() {
                   onChange={(e) => setComment(e.target.value)}
                   required
                 ></textarea>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn-primary"
                   disabled={submitting || !comment.trim()}
                 >
@@ -289,16 +299,16 @@ function EventDetail() {
                 </>
               ) : event.is_attending ? (
                 <>
-                  <button 
-                    onClick={handleCancelAttendance} 
+                  <button
+                    onClick={handleCancelAttendance}
                     className="btn-secondary"
                     disabled={submitting}
                   >
                     {submitting ? 'Processing...' : 'Cancel Registration'}
                   </button>
                   {ticket && (
-                    <button 
-                      className="btn-primary" 
+                    <button
+                      className="btn-primary"
                       onClick={handleViewTicket}
                       disabled={ticketLoading}
                     >
@@ -307,8 +317,8 @@ function EventDetail() {
                   )}
                 </>
               ) : (
-                <button 
-                  onClick={handleAttend} 
+                <button
+                  onClick={handleAttend}
                   className="btn-primary"
                   disabled={submitting || event.status !== 'published'}
                 >
@@ -332,7 +342,7 @@ function EventDetail() {
                 <p>{formatEventDate(event.start_date, event.start_time)}</p>
               </div>
             </div>
-            
+
             <div className="detail-item">
               <i className="icon-calendar-end"></i>
               <div>
@@ -340,7 +350,7 @@ function EventDetail() {
                 <p>{formatEventDate(event.end_date, event.end_time)}</p>
               </div>
             </div>
-            
+
             <div className="detail-item">
               <i className="icon-location"></i>
               <div>
@@ -348,7 +358,7 @@ function EventDetail() {
                 <p>{event.venue ? event.venue.name : event.address}</p>
               </div>
             </div>
-            
+
             <div className="detail-item">
               <i className="icon-price"></i>
               <div>
@@ -356,7 +366,7 @@ function EventDetail() {
                 <p>{event.is_free ? 'Free' : `$${event.price}`}</p>
               </div>
             </div>
-            
+
             <div className="detail-item">
               <i className="icon-organizer"></i>
               <div>

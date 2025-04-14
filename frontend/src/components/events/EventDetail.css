@@ -66,7 +66,7 @@
     box-shadow: none;
     max-width: 100%;
   }
-  
+
   .close-button {
     display: none;
   }
@@ -77,4 +77,22 @@
     max-width: 95%;
     padding: 5px;
   }
+}
+.event-image-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.event-gallery-item img {
+  width: 200px;
+  height: auto;
+  border-radius: 8px;
+}
+
+.img-caption {
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: 4px;
 }
