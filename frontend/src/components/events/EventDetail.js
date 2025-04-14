@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import * as eventServices from '../../services/eventServices';
 import * as ticketService from '../../services/ticketService';
@@ -19,10 +19,26 @@ function EventDetail() {
   const [ticketLoading, setTicketLoading] = useState(false);
   const [showTicket, setShowTicket] = useState(false);
   const [ticketError, setTicketError] = useState(null);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const shareMenuRef = useRef(null);
 
   // Check authentication status
   useEffect(() => {
     setIsAuthenticated(authService.isAuthenticated());
+  }, []);
+
+  // Close share menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target)) {
+        setShowShareMenu(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   // Fetch event details
@@ -148,6 +164,58 @@ function EventDetail() {
 
   const handleVerifyTickets = () => {
     navigate(`/ticket-verification/${id}`);
+  };
+
+  const toggleShareMenu = () => {
+    setShowShareMenu(!showShareMenu);
+  };
+
+  const getEventUrl = () => {
+    const baseUrl = `${window.location.protocol}//${window.location.host}`;
+    return `${baseUrl}/events/${id}`;
+  };
+
+  const handleShare = (platform) => {
+    if (!event) return;
+    
+    const eventUrl = getEventUrl();
+    const shareText = `Check out this event: ${event.title}`;
+    let shareUrl = '';
+    
+    switch (platform) {
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(eventUrl)}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(eventUrl)}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + eventUrl)}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=${encodeURIComponent('Check out this event')}&body=${encodeURIComponent(shareText + '\n\n' + eventUrl)}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    setShowShareMenu(false);
+  };
+
+  const handleCopyLink = () => {
+    const eventUrl = getEventUrl();
+    navigator.clipboard.writeText(eventUrl)
+      .then(() => {
+        alert('Event link copied to clipboard!');
+        setShowShareMenu(false);
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+      });
   };
 
   const formatEventDate = (date, time) => {
@@ -320,6 +388,39 @@ function EventDetail() {
                 Login to Register
               </Link>
             )}
+            
+            {/* Share Button with Dropdown */}
+            <div className="share-container" ref={shareMenuRef}>
+              <button 
+                onClick={toggleShareMenu} 
+                className="btn-share"
+              >
+                Share Event
+              </button>
+              
+              {showShareMenu && (
+                <div className="share-menu">
+                  <button onClick={() => handleShare('twitter')} className="share-option twitter">
+                    Twitter
+                  </button>
+                  <button onClick={() => handleShare('facebook')} className="share-option facebook">
+                    Facebook
+                  </button>
+                  <button onClick={() => handleShare('linkedin')} className="share-option linkedin">
+                    LinkedIn
+                  </button>
+                  <button onClick={() => handleShare('whatsapp')} className="share-option whatsapp">
+                    WhatsApp
+                  </button>
+                  <button onClick={() => handleShare('email')} className="share-option email">
+                    Email
+                  </button>
+                  <button onClick={handleCopyLink} className="share-option copy">
+                    Copy Link
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {ticketError && <div className="ticket-error-message">{ticketError}</div>}

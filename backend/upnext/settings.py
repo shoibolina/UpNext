@@ -68,16 +68,29 @@ WSGI_APPLICATION = "upnext.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME"),
-        "USER": config("DB_USER"),  # Replace with your database user
-        "PASSWORD": config("DB_PASSWORD"),  # Replace with your database password
-        "HOST": config("DB_HOST"),
-        "PORT": config("DB_PORT"),
+        "NAME": "upnext",
+        "USER": "liyunxiao",
+        "PASSWORD": "",  # 暂时为空，生产环境建议设置一个安全密码
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
+
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": config("DB_NAME"),
+#         "USER": config("DB_USER"),  # Replace with your database user
+#         "PASSWORD": config("DB_PASSWORD"),  # Replace with your database password
+#         "HOST": config("DB_HOST"),
+#         "PORT": config("DB_PORT"),
+#     }
+# }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
