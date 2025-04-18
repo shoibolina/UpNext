@@ -183,6 +183,8 @@ const authService = {
       }
       
       const userData = await response.json();
+      // Update cached user data
+      localStorage.setItem('cachedUser', JSON.stringify(userData));
       return userData;
     } catch (error) {
       console.error('Error fetching current user:', error);
@@ -236,11 +238,88 @@ const authService = {
       
       const updatedUser = await response.json();
       
+      // Update cached user data
       localStorage.setItem('cachedUser', JSON.stringify(updatedUser));
       
       return updatedUser;
     } catch (error) {
       console.error('Error updating profile:', error);
+      throw error;
+    }
+  },
+  
+  uploadProfileImage: async (imageFile) => {
+    try {
+      await authService.refreshTokenIfNeeded();
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+      
+      // Create FormData object to send the file
+      const formData = new FormData();
+      formData.append('profile_image', imageFile);
+      
+      const response = await fetch(`${API_URL}/api/v1/users/upload_profile_image/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to upload profile image');
+      }
+      
+      const updatedUser = await response.json();
+      
+      // Update cached user data
+      localStorage.setItem('cachedUser', JSON.stringify(updatedUser));
+      
+      return updatedUser;
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      throw error;
+    }
+  },
+  
+  uploadCoverImage: async (imageFile) => {
+    try {
+      await authService.refreshTokenIfNeeded();
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+      
+      // Create FormData object to send the file
+      const formData = new FormData();
+      formData.append('cover_photo', imageFile);
+      
+      const response = await fetch(`${API_URL}/api/v1/users/upload_cover_photo/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to upload cover photo');
+      }
+      
+      const updatedUser = await response.json();
+      
+      // Update cached user data
+      localStorage.setItem('cachedUser', JSON.stringify(updatedUser));
+      
+      return updatedUser;
+    } catch (error) {
+      console.error('Error uploading cover photo:', error);
       throw error;
     }
   }
