@@ -12,13 +12,32 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(required=False)
+    profile_picture_url = serializers.SerializerMethodField()
+    cover_photo_url = serializers.SerializerMethodField()
     
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 
-                  'bio', 'profile_picture', 'is_event_organizer', 
+                  'bio', 'profile_picture', 'profile_picture_url', 
+                  'cover_photo', 'cover_photo_url', 'is_event_organizer', 
                   'is_venue_owner', 'date_joined', 'profile')
-        read_only_fields = ('id', 'date_joined')
+        read_only_fields = ('id', 'date_joined', 'profile_picture_url', 'cover_photo_url')
+    
+    def get_profile_picture_url(self, obj):
+        if obj.profile_picture:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.profile_picture.url)
+            return obj.profile_picture.url
+        return None
+    
+    def get_cover_photo_url(self, obj):
+        if obj.cover_photo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.cover_photo.url)
+            return obj.cover_photo.url
+        return None
     
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', None)
@@ -45,8 +64,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'password', 'password2', 'first_name', 
-                  'last_name', 'bio', 'profile_picture', 'is_event_organizer', 
-                  'is_venue_owner', 'profile')
+                  'last_name', 'bio', 'profile_picture', 'cover_photo', 
+                  'is_event_organizer', 'is_venue_owner', 'profile')
     
     def validate(self, attrs):
         # Check that password entries match

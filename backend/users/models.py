@@ -11,6 +11,7 @@ class User(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
+    cover_photo = models.ImageField(upload_to="cover_photos/", blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     is_event_organizer = models.BooleanField(default=False)
     is_venue_owner = models.BooleanField(default=False)

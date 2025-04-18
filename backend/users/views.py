@@ -1,6 +1,7 @@
 from rest_framework import viewsets, generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
@@ -83,6 +84,50 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['POST'], url_path='upload_profile_image', parser_classes=[MultiPartParser, FormParser])
+    def upload_profile_image(self, request):
+        """
+        API endpoint to upload and update the user's profile image.
+        """
+        user = request.user
+        
+        # Check if profile_image is in the request data
+        if 'profile_image' not in request.FILES:
+            return Response(
+                {'detail': 'No image file provided'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Update the user's profile_picture field
+        user.profile_picture = request.FILES['profile_image']
+        user.save()
+        
+        # Return the updated user data
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['POST'], url_path='upload_cover_photo', parser_classes=[MultiPartParser, FormParser])
+    def upload_cover_photo(self, request):
+        """
+        API endpoint to upload and update the user's cover photo.
+        """
+        user = request.user
+        
+        # Check if cover_photo is in the request data
+        if 'cover_photo' not in request.FILES:
+            return Response(
+                {'detail': 'No image file provided'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Update the user's cover_photo field
+        user.cover_photo = request.FILES['cover_photo']
+        user.save()
+        
+        # Return the updated user data
+        serializer = self.get_serializer(user)
         return Response(serializer.data)
 
 class UserProfileViewSet(viewsets.ModelViewSet):
