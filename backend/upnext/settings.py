@@ -71,11 +71,11 @@ WSGI_APPLICATION = "upnext.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "upnext",
-        "USER": "xiaofan",  # Replace with your database user
-        "PASSWORD": "111",  # Replace with your database password
-        "HOST": "localhost",
-        "PORT": "5432",
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),  # Replace with your database user
+        "PASSWORD": config("DB_PASSWORD"),  # Replace with your database password
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
     }
 }
 
