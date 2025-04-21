@@ -204,17 +204,17 @@ function Profile() {
     setLoading(true);
     try {
       await authService.updateProfile(formData);
-      
+
       // Upload profile image if one was selected
       if (profileImage) {
         await handleImageUpload();
       }
-      
+
       // Upload cover image if one was selected
       if (coverImage) {
         await handleCoverUpload();
       }
-      
+
       const updatedUser = await authService.getCurrentUser();
       setUserData(updatedUser);
       setIsEditing(false);
@@ -284,31 +284,31 @@ function Profile() {
               onChange={handleChange}
               type="tel"
             />
-            <InputField 
-              label="Address" 
-              name="profile_address" 
-              value={formData.profile.address} 
-              onChange={handleChange} 
+            <InputField
+              label="Address"
+              name="profile_address"
+              value={formData.profile.address}
+              onChange={handleChange}
             />
-            
+
             <div className="form-row">
-              <InputField 
-                label="City" 
-                name="profile_city" 
-                value={formData.profile.city} 
-                onChange={handleChange} 
+              <InputField
+                label="City"
+                name="profile_city"
+                value={formData.profile.city}
+                onChange={handleChange}
               />
-              <InputField 
-                label="State" 
-                name="profile_state" 
-                value={formData.profile.state} 
-                onChange={handleChange} 
+              <InputField
+                label="State"
+                name="profile_state"
+                value={formData.profile.state}
+                onChange={handleChange}
               />
-              <InputField 
-                label="ZIP Code" 
-                name="profile_zip_code" 
-                value={formData.profile.zip_code} 
-                onChange={handleChange} 
+              <InputField
+                label="ZIP Code"
+                name="profile_zip_code"
+                value={formData.profile.zip_code}
+                onChange={handleChange}
               />
             </div>
           </div>
@@ -346,7 +346,7 @@ function Profile() {
                 <div className="info-row">
                   <div className="info-label">Full Name</div>
                   <div className="info-value">
-                    {userData.first_name || userData.last_name 
+                    {userData.first_name || userData.last_name
                       ? `${userData.first_name || ''} ${userData.last_name || ''}`
                       : 'Not provided'}
                   </div>
@@ -364,7 +364,7 @@ function Profile() {
                   <div className="info-value">
                     {userData.is_event_organizer && <span className="user-badge organizer">Event Organizer</span>}
                     {userData.is_venue_owner && <span className="user-badge venue-owner">Venue Owner</span>}
-                    {!userData.is_event_organizer && !userData.is_venue_owner && 
+                    {!userData.is_event_organizer && !userData.is_venue_owner &&
                       <span className="user-badge standard">Standard User</span>}
                   </div>
                 </div>
@@ -374,7 +374,7 @@ function Profile() {
                 </div>
               </div>
             </div>
-            
+
             <div className="profile-card-section">
               <h3>Bio</h3>
               <div className="profile-bio">
@@ -383,7 +383,7 @@ function Profile() {
             </div>
           </div>
         );
-        
+
       case 'contact':
         return (
           <div className="profile-contact-tab">
@@ -414,7 +414,7 @@ function Profile() {
             </div>
           </div>
         );
-        
+
       default:
         return <div>Select a tab to view information</div>;
     }
@@ -424,9 +424,9 @@ function Profile() {
     <div className="profile-container">
       <div className="profile-header-section">
         <div className="profile-cover" style={
-          previewCoverImage || userData.cover_photo_url 
-          ? {backgroundImage: `url(${previewCoverImage || userData.cover_photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center'} 
-          : {}
+          previewCoverImage || userData.cover_photo_url
+            ? { backgroundImage: `url(${previewCoverImage || userData.cover_photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+            : {}
         }>
           {isEditing && (
             <div className="cover-photo-overlay" onClick={triggerCoverInput}>
@@ -452,17 +452,17 @@ function Profile() {
           />
           {isEditing && coverImage && (
             <div className="cover-upload-actions">
-              <button 
-                type="button" 
-                className="btn-icon" 
-                onClick={handleCoverUpload} 
+              <button
+                type="button"
+                className="btn-icon"
+                onClick={handleCoverUpload}
                 disabled={coverUploading}
               >
                 ✓ {coverUploading ? 'Uploading...' : 'Save Cover'}
               </button>
-              <button 
-                type="button" 
-                className="btn-icon btn-cancel" 
+              <button
+                type="button"
+                className="btn-icon btn-cancel"
                 onClick={cancelCoverUpload}
               >
                 ✕ Cancel
@@ -470,27 +470,27 @@ function Profile() {
             </div>
           )}
         </div>
-        
+
         <div className="profile-main-info">
           <div className="profile-image-container">
             <div className="profile-image-wrapper">
               {previewImage || userData.profile_picture_url ? (
-                <img 
-                  src={previewImage || userData.profile_picture_url} 
-                  alt="Profile" 
-                  className="profile-image" 
+                <img
+                  src={previewImage || userData.profile_picture_url}
+                  alt="Profile"
+                  className="profile-image"
                 />
               ) : (
                 <div className="profile-image-placeholder">
                   <span className="avatar-text">
-                    {userData.first_name && userData.last_name 
-                      ? `${userData.first_name[0]}${userData.last_name[0]}` 
-                      : userData.username ? userData.username[0].toUpperCase() 
-                      : 'U'}
+                    {userData.first_name && userData.last_name
+                      ? `${userData.first_name[0]}${userData.last_name[0]}`
+                      : userData.username ? userData.username[0].toUpperCase()
+                        : 'U'}
                   </span>
                 </div>
               )}
-              
+
               {isEditing && (
                 <div className="profile-image-overlay" onClick={triggerFileInput}>
                   <span className="camera-icon">📷</span>
@@ -507,17 +507,17 @@ function Profile() {
             />
             {isEditing && profileImage && (
               <div className="image-upload-actions">
-                <button 
-                  type="button" 
-                  className="btn-icon" 
-                  onClick={handleImageUpload} 
+                <button
+                  type="button"
+                  className="btn-icon"
+                  onClick={handleImageUpload}
                   disabled={imageUploading}
                 >
                   ✓ {imageUploading ? 'Uploading...' : 'Save Photo'}
                 </button>
-                <button 
-                  type="button" 
-                  className="btn-icon btn-cancel" 
+                <button
+                  type="button"
+                  className="btn-icon btn-cancel"
                   onClick={cancelImageUpload}
                 >
                   ✕ Cancel
@@ -526,30 +526,30 @@ function Profile() {
             )}
           </div>
         </div>
-        
+
         <div className="profile-user-info">
           <h2 className="user-name">
-            {userData.first_name || userData.last_name 
+            {userData.first_name || userData.last_name
               ? `${userData.first_name || ''} ${userData.last_name || ''}`
               : userData.username}
           </h2>
           <div className="user-badges">
             {userData.is_event_organizer && <span className="user-badge organizer">Event Organizer</span>}
             {userData.is_venue_owner && <span className="user-badge venue-owner">Venue Owner</span>}
-            {!userData.is_event_organizer && !userData.is_venue_owner && 
+            {!userData.is_event_organizer && !userData.is_venue_owner &&
               <span className="user-badge standard">Standard User</span>}
           </div>
         </div>
-        
+
         {!isEditing && (
           <div className="profile-tabs">
-            <button 
+            <button
               className={`tab-button ${activeTab === 'about' ? 'active' : ''}`}
               onClick={() => setActiveTab('about')}
             >
               About
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'contact' ? 'active' : ''}`}
               onClick={() => setActiveTab('contact')}
             >

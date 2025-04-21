@@ -6,7 +6,6 @@ import './Dashboard.css';
 import MyVenues from '../venues/MyVenues';
 import MyBookings from '../venues/MyBookings';
 
-
 function Dashboard() {
   const [userData, setUserData] = useState(null);
   const [myEvents, setMyEvents] = useState([]);
@@ -15,15 +14,14 @@ function Dashboard() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('events');
   const location = useLocation();
-    
-    useEffect(() => {
-      const tabFromNav = location.state?.tab;
-      if (tabFromNav) {
-        setActiveTab(tabFromNav);
-      }
-    }, [location.state]);
-
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const tabFromNav = location.state?.tab;
+    if (tabFromNav) {
+      setActiveTab(tabFromNav);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,13 +40,10 @@ function Dashboard() {
           eventServices.getEvents()
         ]);
 
-        // Ensure we're working with arrays
         const myEventsArray = Array.isArray(organizedEvents) ? organizedEvents : [];
         const allEventsArray = Array.isArray(allEvents) ? allEvents : [];
 
         setMyEvents(myEventsArray);
-        
-        // Filter events the user is attending
         setAttendingEvents(allEventsArray.filter(event => event.is_attending));
       } catch (err) {
         console.error('Dashboard error:', err);
@@ -99,7 +94,9 @@ function Dashboard() {
             className={`tab-button ${activeTab === tab ? 'active' : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === 'events' ? 'My Events' : tab === 'attending' ? 'Attending' : tab === 'venues' ? 'My Venues' : 'My Bookings'}
+            {tab === 'events' ? 'My Events' :
+              tab === 'attending' ? 'Attending' :
+                tab === 'venues' ? 'My Venues' : 'My Bookings'}
           </button>
         ))}
       </div>
@@ -110,9 +107,9 @@ function Dashboard() {
         {activeTab === 'events' && (
           <DashboardSection
             title="Events You're Organizing"
+            events={myEvents}
             emptyMessage="You haven't created any events yet."
             emptyLink={{ to: '/create-event', text: 'Create Event' }}
-            events={myEvents || []}
             renderActions={(event) => (
               <>
                 <Link to={`/events/${event.id}`} className="btn-secondary">View</Link>
@@ -126,9 +123,9 @@ function Dashboard() {
         {activeTab === 'attending' && (
           <DashboardSection
             title="Events You're Attending"
+            events={attendingEvents}
             emptyMessage="You're not registered for any events yet."
             emptyLink={{ to: '/events', text: 'Explore Events' }}
-            events={attendingEvents || []}
             renderActions={(event) => (
               <>
                 <Link to={`/events/${event.id}`} className="btn-secondary">View</Link>
@@ -153,7 +150,6 @@ function Dashboard() {
 }
 
 function DashboardSection({ title, events = [], emptyMessage, emptyLink, renderActions, formatEventDate, showOrganizer = false }) {
-  // Defensive check - ensure events is always an array
   const eventsArray = Array.isArray(events) ? events : [];
 
   return (
@@ -166,21 +162,31 @@ function DashboardSection({ title, events = [], emptyMessage, emptyLink, renderA
         </div>
       ) : (
         <div className="dashboard-events">
-          {eventsArray.map(event => (
-            <div key={event.id} className="dashboard-event-card">
+          {eventsArray.map((event, index) => (
+            <div
+              key={event.id}
+              className="dashboard-event-card"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <div className="event-details">
                 <h3>{event.title}</h3>
                 <p className="event-date">{formatEventDate(event.start_date, event.start_time)}</p>
+
                 {showOrganizer && (
                   <p className="event-organizer">By: {event.organizer?.username || 'Unknown'}</p>
                 )}
+
                 {event.status && (
-                  <p className="event-status">Status: <span className={`status-${event.status}`}>{event.status}</span></p>
+                  <p className="event-status">
+                    Status: <span className={`status-${event.status}`}>{event.status}</span>
+                  </p>
                 )}
+
                 {'attendees_count' in event && (
                   <p className="event-attendees">{event.attendees_count} attendees</p>
                 )}
               </div>
+
               <div className="event-actions">{renderActions(event)}</div>
             </div>
           ))}

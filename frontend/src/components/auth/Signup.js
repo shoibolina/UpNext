@@ -22,6 +22,7 @@ function Signup() {
       zip_code: ''
     }
   });
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -29,21 +30,19 @@ function Signup() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    // Handle nested profile fields
+
     if (name.startsWith('profile_')) {
-      const profileField = name.replace('profile_', '');
-      setFormData(prevData => ({
-        ...prevData,
+      const field = name.replace('profile_', '');
+      setFormData((prev) => ({
+        ...prev,
         profile: {
-          ...prevData.profile,
-          [profileField]: value
+          ...prev.profile,
+          [field]: value
         }
       }));
     } else {
-      // Handle regular fields
-      setFormData(prevData => ({
-        ...prevData,
+      setFormData((prev) => ({
+        ...prev,
         [name]: type === 'checkbox' ? checked : value
       }));
     }
@@ -51,52 +50,33 @@ function Signup() {
 
   const handleNextStep = (e) => {
     e.preventDefault();
-    
-    // Basic validation
-    if (!formData.username) {
-      setError('Username is required');
-      return;
-    }
-    if (!formData.email) {
-      setError('Email is required');
-      return;
-    }
-    if (!formData.password || formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-    if (formData.password !== formData.password2) {
-      setError('Passwords do not match');
-      return;
-    }
-    
-    // Clear any errors and proceed to step 2
+
+    if (!formData.username) return setError('Username is required');
+    if (!formData.email) return setError('Email is required');
+    if (!formData.password || formData.password.length < 8)
+      return setError('Password must be at least 8 characters');
+    if (formData.password !== formData.password2)
+      return setError('Passwords do not match');
+
     setError('');
     setStep(2);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
-    
+    setLoading(true);
+
     try {
-      // Debug: Log what we're sending to the backend
-      console.log('Submitting registration data:', formData);
-      
       const result = await authService.register(formData);
-      console.log('Registration successful:', result);
-      
       if (result.access) {
         localStorage.setItem('token', result.access);
-        
         if (result.user) {
           localStorage.setItem('user', JSON.stringify(result.user));
         }
-        
         navigate('/dashboard');
       } else {
-        setError('Registration successful but no token received. Please try logging in.');
+        setError('Registration succeeded but no token returned.');
       }
     } catch (err) {
       console.error('Registration error:', err);
@@ -111,9 +91,8 @@ function Signup() {
       <div className="auth-container">
         <div className="auth-form">
           <h2>Create an Account</h2>
-          
           {error && <div className="error-message">{error}</div>}
-          
+
           <form onSubmit={handleNextStep}>
             <div className="form-group">
               <label htmlFor="username">Username*</label>
@@ -126,7 +105,7 @@ function Signup() {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="email">Email Address*</label>
               <input
@@ -138,7 +117,7 @@ function Signup() {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="password">Password*</label>
               <input
@@ -152,7 +131,7 @@ function Signup() {
               />
               <small>Must be at least 8 characters</small>
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="password2">Confirm Password*</label>
               <input
@@ -164,11 +143,11 @@ function Signup() {
                 required
               />
             </div>
-            
+
             <button type="submit" className="auth-button">
               Next Step
             </button>
-            
+
             <p className="login-link">
               Already have an account? <Link to="/login">Login</Link>
             </p>
@@ -177,14 +156,13 @@ function Signup() {
       </div>
     );
   }
-  
+
   return (
     <div className="auth-container">
       <div className="auth-form">
         <h2>Complete Your Profile</h2>
-        
         {error && <div className="error-message">{error}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="first_name">First Name</label>
@@ -196,7 +174,7 @@ function Signup() {
               onChange={handleChange}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="last_name">Last Name</label>
             <input
@@ -207,7 +185,7 @@ function Signup() {
               onChange={handleChange}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="bio">Bio</label>
             <textarea
@@ -216,9 +194,9 @@ function Signup() {
               value={formData.bio}
               onChange={handleChange}
               rows="3"
-            ></textarea>
+            />
           </div>
-          
+
           <div className="form-group">
             <label>I want to:</label>
             <div className="checkbox-container">
@@ -231,7 +209,7 @@ function Signup() {
                 />
                 Organize Events
               </label>
-              
+
               <label className="checkbox-label">
                 <input
                   type="checkbox"
@@ -243,9 +221,9 @@ function Signup() {
               </label>
             </div>
           </div>
-          
+
           <h3>Contact Information</h3>
-          
+
           <div className="form-group">
             <label htmlFor="profile_phone_number">Phone Number</label>
             <input
@@ -256,7 +234,7 @@ function Signup() {
               onChange={handleChange}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="profile_address">Address</label>
             <input
@@ -267,7 +245,7 @@ function Signup() {
               onChange={handleChange}
             />
           </div>
-          
+
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="profile_city">City</label>
@@ -279,7 +257,7 @@ function Signup() {
                 onChange={handleChange}
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="profile_state">State</label>
               <input
@@ -290,7 +268,7 @@ function Signup() {
                 onChange={handleChange}
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="profile_zip_code">ZIP Code</label>
               <input
@@ -302,17 +280,17 @@ function Signup() {
               />
             </div>
           </div>
-          
+
           <div className="button-group">
-            <button 
-              type="button" 
-              className="btn-secondary" 
+            <button
+              type="button"
+              className="btn-secondary"
               onClick={() => setStep(1)}
             >
               Back
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="auth-button"
               disabled={loading}
             >
