@@ -1,0 +1,18 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+
+# macOS
+.DS_Store
+
+# Environment
+.env
+*.env
+
+# Django logs
+backend/logs/
+
+# Node
+node_modules/
+package-lock.json

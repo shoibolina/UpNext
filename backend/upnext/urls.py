@@ -9,6 +9,7 @@ from drf_yasg import openapi
 from rest_framework import permissions
 from django.contrib.auth import views as auth_views
 from users.views import init_csrf
+from users.views import PasswordResetRequestView, PasswordResetConfirmView
 
 # App views
 from users.views import UserViewSet, RegisterView, UserProfileViewSet
@@ -131,27 +132,15 @@ urlpatterns = [
     # Auth
     path("api-auth/", include("rest_framework.urls")),
     # password reset
-    path(
-        "api/password-reset/",
-        auth_views.PasswordResetView.as_view(),
-        name="password_reset",
-    ),
+
+    path("api/password-reset-request/", PasswordResetRequestView.as_view()),
     # path("password-reset/", CustomPasswordResetView.as_view(), name="password_reset"),
     path(
         "api/password-reset/done/",
         auth_views.PasswordResetDoneView.as_view(),
         name="password_reset_done",
     ),
-    path(
-        "api/reset/<uidb64>/<token>/",
-        auth_views.PasswordResetConfirmView.as_view(),
-        name="password_reset_confirm",
-    ),
-    path(
-        "api/reset/done/",
-        auth_views.PasswordResetCompleteView.as_view(),
-        name="password_reset_complete",
-    ),
+    path("api/password-reset-confirm/<uidb64>/<token>/", PasswordResetConfirmView.as_view()),
     # CSRF endpoint
     path("api/", include("users.urls")),
 ]

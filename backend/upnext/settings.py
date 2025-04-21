@@ -2,6 +2,9 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from decouple import config
+import resend
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -206,5 +209,6 @@ LOGGING = {
     },
 }
 
+resend.api_key = config("RESEND_API_KEY")
 # Ensure the logs directory exists
 os.makedirs(os.path.join(BASE_DIR, "logs"), exist_ok=True)
