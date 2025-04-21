@@ -23,19 +23,19 @@ const BookVenueForm = ({ venueId }) => {
   const getBookingEndpoint = async ({ forBooking = false } = {}) => {
     const venueRes = await fetchWithAuth(`/api/v1/venues/${id}/`);
     const venueData = await venueRes.json();
-  
+
     const token = localStorage.getItem("token");
     const base64 = token?.split(".")[1];
     const payload = base64 ? JSON.parse(atob(base64)) : null;
     const currentUserId = payload?.user_id;
-  
+
     if (forBooking) {
       return `/api/v1/venues/${id}/bookings/`; // POST to this endpoint
     }
-  
+
     return `/api/v1/venues/${id}/all-bookings/`; // Always fetch all for slot rendering
   };
-  
+
   const fetchConfirmedBookings = async () => {
     try {
       const res = await fetchWithAuth(`/api/v1/venues/${id}/all-bookings/`);
@@ -44,24 +44,24 @@ const BookVenueForm = ({ venueId }) => {
       return Array.isArray(data.results)
         ? data.results.filter(b => b.status === "confirmed")
         : Array.isArray(data)
-        ? data.filter(b => b.status === "confirmed")
-        : [];
+          ? data.filter(b => b.status === "confirmed")
+          : [];
     } catch (err) {
       console.error("Error fetching confirmed bookings:", err);
       return [];
     }
   };
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const availabilityData = await getVenueAvailability(id);
         setAvailability(Array.isArray(availabilityData.results) ? availabilityData.results : []);
-  
+
         const venueRes = await fetchWithAuth(`/api/v1/venues/${id}/`);
         const venueData = await venueRes.json();
         setHourlyRate(parseFloat(venueData.hourly_rate));
-  
+
         // Always fetch all bookings to correctly hide booked slots
         const bookingsEndpoint = await getBookingEndpoint({ forBooking: false });
         const bookingRes = await fetchWithAuth(bookingsEndpoint);
@@ -72,10 +72,10 @@ const BookVenueForm = ({ venueId }) => {
         console.error("Error fetching availability/bookings", error);
       }
     };
-  
+
     fetchData();
   }, [id]);
-  
+
 
   useEffect(() => {
     const weekday = (selectedDate.getDay() + 6) % 7; // 0 = Monday, ... 6 = Sunday
@@ -88,9 +88,9 @@ const BookVenueForm = ({ venueId }) => {
     const closing = parseTime(dayAvailability.closing_time);
 
     const booked = bookings
-      .filter(b => b.booking_date === selectedDate.toISOString().split("T")[0] 
-      && b.status === "confirmed"
-    )
+      .filter(b => b.booking_date === selectedDate.toISOString().split("T")[0]
+        && b.status === "confirmed"
+      )
       .map(b => ({
         start: parseTime(b.start_time),
         end: parseTime(b.end_time),
@@ -156,13 +156,13 @@ const BookVenueForm = ({ venueId }) => {
   const buildTimeSlots = (bookingList = bookings) => {
     const weekday = (selectedDate.getDay() + 6) % 7;
     const slots = [];
-  
+
     const dayAvailability = availability.find(a => a.day_of_week === weekday);
     if (!dayAvailability) return;
-  
+
     const opening = parseTime(dayAvailability.opening_time);
     const closing = parseTime(dayAvailability.closing_time);
-  
+
     const booked = bookingList
       .filter(b =>
         b.booking_date === selectedDate.toISOString().split("T")[0] &&
@@ -172,13 +172,13 @@ const BookVenueForm = ({ venueId }) => {
         start: parseTime(b.start_time),
         end: parseTime(b.end_time),
       }));
-  
+
     for (let start = opening; start + 60 <= closing; start += 60) {
       const end = start + 60;
       const isOverlapping = booked.some(
         b => !(end <= b.start || start >= b.end)
       );
-  
+
       if (!isOverlapping) {
         slots.push({
           start,
@@ -187,7 +187,7 @@ const BookVenueForm = ({ venueId }) => {
         });
       }
     }
-  
+
     setTimeSlots(slots);
   };
 
@@ -195,13 +195,13 @@ const BookVenueForm = ({ venueId }) => {
 
   const handleBooking = async () => {
     if (!selectedSlots.length) return alert("Please select time slots.");
-  
+
     const start = selectedSlots[0].start;
     const end = selectedSlots[selectedSlots.length - 1].end;
-  
+
     try {
       const postEndpoint = await getBookingEndpoint({ forBooking: true });
-  
+
       const response = await fetchWithAuth(postEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -211,14 +211,14 @@ const BookVenueForm = ({ venueId }) => {
           end_time: formatTime(end),
         }),
       });
-  
+
       const data = await response.json();
       if (!response.ok)
         throw new Error(data?.non_field_errors?.[0] || data?.detail || "Booking failed");
-  
+
       alert(`Booking successful! Total price: $${data.total_price}`);
       setBookingSuccess(true);
-  
+
       // Re-fetch ALL bookings after creating
       const bookingsEndpoint = await getBookingEndpoint({ forBooking: false });
       const bookingRes = await fetchWithAuth(bookingsEndpoint);
@@ -229,15 +229,15 @@ const BookVenueForm = ({ venueId }) => {
       setTimeout(() => {
         buildTimeSlots(updatedBookings);
       }, 0);
-  
+
       setSelectedSlots([]);
-    //   buildTimeSlots();
-    //   setTimeout(() => setBookingSuccess(false), 1000);
+      //   buildTimeSlots();
+      //   setTimeout(() => setBookingSuccess(false), 1000);
     } catch (err) {
       alert(err.message);
     }
   };
-  
+
 
 
   return (
@@ -246,14 +246,14 @@ const BookVenueForm = ({ venueId }) => {
       <div style={{ marginBottom: "1rem" }}>
         {/* <Calendar onChange={setSelectedDate} value={selectedDate} /> */}
         <Calendar
-            onChange={setSelectedDate}
-            value={selectedDate}
-            tileDisabled={({ date }) => {
-                const weekday = (date.getDay() + 6) % 7;
-                const allowedDays = availability.map((a) => a.day_of_week);
-                return !allowedDays.includes(weekday); // Disable if not in availability
-            }}
-            />
+          onChange={setSelectedDate}
+          value={selectedDate}
+          tileDisabled={({ date }) => {
+            const weekday = (date.getDay() + 6) % 7;
+            const allowedDays = availability.map((a) => a.day_of_week);
+            return !allowedDays.includes(weekday); // Disable if not in availability
+          }}
+        />
       </div>
 
       {timeSlots.length > 0 ? (
@@ -276,9 +276,9 @@ const BookVenueForm = ({ venueId }) => {
 
           {selectedSlots.length > 0 && (
             <p>
-                <strong>Total Price:</strong> ${totalPrice.toFixed(2)}
+              <strong>Total Price:</strong> ${totalPrice.toFixed(2)}
             </p>
-            )}
+          )}
 
           {!bookingSuccess ? (
             <button onClick={handleBooking} disabled={!selectedSlots.length}>

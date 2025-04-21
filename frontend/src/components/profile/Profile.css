@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
 .profile-container {
   max-width: 900px;
   margin: 0 auto;
@@ -391,3 +397,19 @@
   min-height: 100px;
 }
 
+.profile-container {
+  animation: fadeInUp 0.8s ease-out both;
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

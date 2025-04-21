@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../../services/authService';
-import './Login.css'; 
+import './Login.css';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -14,7 +14,7 @@ function Login() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     try {
       const result = await authService.login(email, password);
       localStorage.setItem('user', JSON.stringify(result.user));
@@ -30,9 +30,9 @@ function Login() {
     <div className="auth-container">
       <div className="auth-form">
         <h2>Login</h2>
-        
+
         {error && <div className="error-message">{error}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -44,7 +44,7 @@ function Login() {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -55,12 +55,12 @@ function Login() {
               required
             />
           </div>
-          
+
           <button type="submit" disabled={loading} className="auth-button">
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        
+
         <p>
           Don't have an account?{' '}
           <Link to="/signup" className="link-button">Sign Up</Link>
@@ -68,7 +68,7 @@ function Login() {
 
         <p>
           Forgot your password?{' '}
-          <Link to="/forgot-password" classname="link-button">Reset Password</Link>
+          <Link to="/forgot-password" className="link-button">Reset Password</Link>
         </p>
       </div>
     </div>
