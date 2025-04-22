@@ -1,9 +1,14 @@
 const API_URL = 'http://127.0.0.1:8000';
 
+// Helper function to get consistent base URL
+const getBaseUrl = () => {
+  return process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+};
+
 const authService = {
   register: async (userData) => {
     try {
-      const response = await fetch(`${API_URL}/api/register/`, {
+      const response = await fetch(`${getBaseUrl()}/api/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,7 +39,7 @@ const authService = {
   
   login: async (email, password) => {
     try {
-      const response = await fetch(`${API_URL}/api/token/`, {
+      const response = await fetch(`${getBaseUrl()}/api/token/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +62,7 @@ const authService = {
       }
       
       // Fetch user data
-      const userResponse = await fetch(`${API_URL}/api/v1/users/me/`, {
+      const userResponse = await fetch(`${getBaseUrl()}/api/v1/users/me/`, {
         headers: {
           'Authorization': `Bearer ${data.access}`
         }
@@ -96,7 +101,7 @@ const authService = {
         throw new Error('No refresh token available');
       }
       
-      const response = await fetch(`${API_URL}/api/token/refresh/`, {
+      const response = await fetch(`${getBaseUrl()}/api/token/refresh/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +137,7 @@ const authService = {
     }
     
     try {
-      const response = await fetch(`${API_URL}/api/v1/users/me/`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/users/me/`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -165,7 +170,7 @@ const authService = {
         return null;
       }
       
-      const response = await fetch(`${API_URL}/api/v1/users/me/`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/users/me/`, {
         headers: {
           'Authorization': `Bearer ${freshToken}`
         }
@@ -222,7 +227,7 @@ const authService = {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`${API_URL}/api/v1/users/update_me/`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/users/update_me/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +266,7 @@ const authService = {
       const formData = new FormData();
       formData.append('profile_image', imageFile);
       
-      const response = await fetch(`${API_URL}/api/v1/users/upload_profile_image/`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/users/upload_profile_image/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -299,7 +304,7 @@ const authService = {
       const formData = new FormData();
       formData.append('cover_photo', imageFile);
       
-      const response = await fetch(`${API_URL}/api/v1/users/upload_cover_photo/`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/users/upload_cover_photo/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -321,6 +326,272 @@ const authService = {
     } catch (error) {
       console.error('Error uploading cover photo:', error);
       throw error;
+    }
+  },
+  
+  // Follow a user - improved with better error handling
+  async followUser(userId) {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    try {
+      console.log(`Following user with ID: ${userId}`);
+      const response = await fetch(`${getBaseUrl()}/api/v1/users/${userId}/follow/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      });
+      
+      // Check if response is okay
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.detail || 'Failed to follow user');
+        } else {
+          const text = await response.text();
+          console.error("Non-JSON error response:", text);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+      }
+      
+      return await response.json();
+    } catch (err) {
+      console.error("Follow user error:", err);
+      throw err;
+    }
+  },
+
+  async unfollowUser(userId) {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    try {
+      console.log(`Unfollowing user with ID: ${userId}`);
+      const response = await fetch(`${getBaseUrl()}/api/v1/users/${userId}/unfollow/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      });
+      
+      // Check if response is okay
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.detail || 'Failed to unfollow user');
+        } else {
+          const text = await response.text();
+          console.error("Non-JSON error response:", text);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+      }
+      
+      return await response.json();
+    } catch (err) {
+      console.error("Unfollow user error:", err);
+      throw err;
+    }
+  },
+
+  // Get user's followers count
+  async getFollowersCount() {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    try {
+      const response = await fetch(`${getBaseUrl()}/api/v1/users/followers/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.detail || 'Failed to fetch followers count');
+        } else {
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+      }
+
+      const followers = await response.json();
+      return followers.length;
+    } catch (err) {
+      console.error("Get followers count error:", err);
+      return 0; // Return 0 instead of throwing to prevent UI disruption
+    }
+  },
+
+  // Get user's following count
+  async getFollowingCount() {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    try {
+      const response = await fetch(`${getBaseUrl()}/api/v1/users/following/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.detail || 'Failed to fetch following count');
+        } else {
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+      }
+
+      const following = await response.json();
+      return following.length;
+    } catch (err) {
+      console.error("Get following count error:", err);
+      return 0; // Return 0 instead of throwing to prevent UI disruption
+    }
+  },
+
+  // Get user's followers - improved with better error handling
+  async getFollowers(searchTerm = '') {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    try {
+      let url = `${getBaseUrl()}/api/v1/users/followers/`;
+      if (searchTerm) {
+        url += `?q=${encodeURIComponent(searchTerm)}`;
+      }
+      
+      console.log("Fetching followers from:", url);
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      // Check if response is okay
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.detail || 'Failed to fetch followers');
+        } else {
+          const text = await response.text();
+          console.error("Non-JSON error response:", text);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+      }
+      
+      const data = await response.json();
+      // Ensure data is an array
+      const followers = data.results ? data.results : Array.isArray(data) ? data : [];
+      console.log(`Fetched ${followers.length} followers`);
+      return followers;
+    } catch (err) {
+      console.error("Get followers error:", err);
+      throw err;
+    }
+  },
+
+  async getFollowing(searchTerm = '') {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    try {
+      let url = `${getBaseUrl()}/api/v1/users/following/`;
+      if (searchTerm) {
+        url += `?q=${encodeURIComponent(searchTerm)}`;
+      }
+      
+      console.log("Fetching following from:", url);
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      // Check if response is okay
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.detail || 'Failed to fetch following');
+        } else {
+          const text = await response.text();
+          console.error("Non-JSON error response:", text);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+      }
+      
+      const data = await response.json();
+      // Ensure data is an array
+      const following = data.results ? data.results : Array.isArray(data) ? data : [];
+      console.log(`Fetched ${following.length} following`);
+      return following;
+    } catch (err) {
+      console.error("Get following error:", err);
+      throw err;
+    }
+  },
+  
+  // Search users
+  async searchUsers(searchTerm) {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return [];
+    }
+    
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    try {
+      const url = `${getBaseUrl()}/api/v1/users/search/?q=${encodeURIComponent(searchTerm)}`;
+      console.log("Searching users:", url);
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.detail || 'Failed to search users');
+        } else {
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+      }
+      
+      const data = await response.json();
+      console.log(`Found ${data.length} users matching "${searchTerm}"`);
+      return data;
+    } catch (err) {
+      console.error("Search users error:", err);
+      throw err;
     }
   }
 };

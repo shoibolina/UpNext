@@ -30,6 +30,7 @@ function Header() {
         <div className="auth-nav">
           {isAuthenticated ? (
             <>
+              <Link to="/messages" className="nav-link">Messages</Link>
               <Link to="/dashboard" className="nav-link">Dashboard</Link>
               <Link to="/profile" className="nav-link">Profile</Link>
               <button onClick={handleLogout} className="logout-button">Logout</button>

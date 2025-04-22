@@ -9,6 +9,7 @@ from drf_yasg import openapi
 from rest_framework import permissions
 from django.contrib.auth import views as auth_views
 from users.views import init_csrf
+from messaging.views import ConversationViewSet
 
 # App views
 from users.views import UserViewSet, RegisterView, UserProfileViewSet
@@ -17,6 +18,7 @@ from events.views import (
     EventCategoryViewSet,
     EventAttendeeViewSet,
     EventCommentViewSet,
+    EventImageViewSet,
 )
 from venues.views import (
     VenueViewSet,
@@ -61,7 +63,7 @@ router.register(r"venues", VenueViewSet)
 router.register(r"venue-categories", VenueCategoryViewSet)
 router.register(r"venue-amenities", VenueAmenityViewSet)
 router.register(r"venue-bookings", VenueBookingViewSet, basename="venuebooking")
-
+router.register(r"conversations", ConversationViewSet, basename="conversation")
 
 # Register ticket routes
 router.register(r"tickets", TicketViewSet, basename="ticket")
@@ -97,6 +99,28 @@ urlpatterns = [
         EventCommentViewSet.as_view({"get": "list", "post": "create"}),
         name="event-comments",
     ),
+    # Event Images routes
+    path(
+        "api/v1/events/<int:event_pk>/images/",
+        EventImageViewSet.as_view({"get": "list", "post": "create"}),
+        name="event-images",
+    ),
+    path(
+        "api/v1/events/<int:event_pk>/images/<int:pk>/",
+        EventImageViewSet.as_view({"get": "retrieve", "put": "update", "patch": "partial_update", "delete": "destroy"}),
+        name="event-image-detail",
+    ),
+    path(
+        "api/v1/events/<int:event_pk>/images/<int:pk>/set-primary/",
+        EventImageViewSet.as_view({"patch": "set_primary"}),
+        name="event-image-set-primary",
+    ),
+    path(
+        "api/v1/events/<int:event_pk>/images/<int:pk>/delete-image/",
+        EventImageViewSet.as_view({"delete": "delete_image"}),
+        name="event-image-delete-image",
+    ),
+    # Venue routes
     path(
         "api/v1/venues/<int:venue_pk>/images/",
         VenueImageViewSet.as_view({"get": "list", "post": "create"}),
@@ -136,7 +160,6 @@ urlpatterns = [
         auth_views.PasswordResetView.as_view(),
         name="password_reset",
     ),
-    # path("password-reset/", CustomPasswordResetView.as_view(), name="password_reset"),
     path(
         "api/password-reset/done/",
         auth_views.PasswordResetDoneView.as_view(),
@@ -154,6 +177,7 @@ urlpatterns = [
     ),
     # CSRF endpoint
     path("api/", include("users.urls")),
+    path("api/v1/", include("messaging.urls")),
 ]
 
 # Serve media files in development
