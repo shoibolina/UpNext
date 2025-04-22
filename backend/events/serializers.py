@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Event, EventCategory, EventAttendee, EventComment
+from .models import Event, EventCategory, EventAttendee, EventComment, EventImage
 from users.serializers import UserSerializer
 
 class EventCategorySerializer(serializers.ModelSerializer):
@@ -23,6 +23,13 @@ class EventAttendeeSerializer(serializers.ModelSerializer):
         fields = ('id', 'event', 'user', 'status', 'registration_date')
         read_only_fields = ('id', 'event', 'user', 'registration_date')
 
+# events/serializers.py
+class EventImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventImage
+        fields = ('id', 'event', 'image', 'caption', 'is_primary', 'created_at')
+        read_only_fields = ('id', 'event', 'created_at')  # Add 'event' here
+
 class EventSerializer(serializers.ModelSerializer):
     organizer = UserSerializer(read_only=True)
     categories = EventCategorySerializer(many=True, read_only=True)
@@ -35,6 +42,7 @@ class EventSerializer(serializers.ModelSerializer):
     )
     attendees_count = serializers.SerializerMethodField()
     is_attending = serializers.SerializerMethodField()
+    primary_image = serializers.SerializerMethodField()
     
     class Meta:
         model = Event
@@ -42,7 +50,8 @@ class EventSerializer(serializers.ModelSerializer):
             'id', 'title', 'slug', 'description', 'organizer', 'categories', 'category_ids',
             'start_date', 'start_time', 'end_date', 'end_time', 'venue', 'address',
             'recurrence', 'visibility', 'status', 'capacity', 'is_free', 'price',
-            'image', 'created_at', 'updated_at', 'attendees_count', 'is_attending'
+            'image', 'created_at', 'updated_at', 'attendees_count', 'is_attending', 
+            'primary_image'
         )
         read_only_fields = ('id', 'slug', 'organizer', 'created_at', 'updated_at')
     
@@ -55,6 +64,12 @@ class EventSerializer(serializers.ModelSerializer):
             return obj.attendees.filter(user=request.user, status='registered').exists()
         return False
     
+    def get_primary_image(self, obj):
+        primary_image = obj.get_primary_image()
+        if primary_image:
+            return EventImageSerializer(primary_image, context=self.context).data
+        return None
+    
     def create(self, validated_data):
         request = self.context.get('request')
         if request and hasattr(request, 'user'):
@@ -64,6 +79,7 @@ class EventSerializer(serializers.ModelSerializer):
 class EventDetailSerializer(EventSerializer):
     comments = EventCommentSerializer(many=True, read_only=True)
     attendees = EventAttendeeSerializer(many=True, read_only=True)
+    images = EventImageSerializer(many=True, read_only=True)
     
     class Meta(EventSerializer.Meta):
-        fields = EventSerializer.Meta.fields + ('comments', 'attendees')
+        fields = EventSerializer.Meta.fields + ('comments', 'attendees', 'images')

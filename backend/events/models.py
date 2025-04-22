@@ -74,6 +74,15 @@ class Event(models.Model):
     
     def __str__(self):
         return self.title
+        
+    def get_primary_image(self):
+        """
+        Returns the primary image for the event or the first image if no primary is set.
+        """
+        primary_image = self.images.filter(is_primary=True).first()
+        if not primary_image:
+            primary_image = self.images.first()
+        return primary_image
 
 class EventAttendee(models.Model):
     """
@@ -108,3 +117,23 @@ class EventComment(models.Model):
     
     def __str__(self):
         return f"Comment by {self.user.email} on {self.event.title}"
+
+class EventImage(models.Model):
+    """
+    Multiple images for an event.
+    """
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='event_images/')
+    caption = models.CharField(max_length=255, blank=True)
+    is_primary = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Image for {self.event.title}"
+    
+    def save(self, *args, **kwargs):
+        if self.is_primary:
+            EventImage.objects.filter(event=self.event, is_primary=True).update(is_primary=False)
+        elif not EventImage.objects.filter(event=self.event).exists():
+            self.is_primary = True
+        super().save(*args, **kwargs)

@@ -16,6 +16,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -27,11 +28,13 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "drf_yasg",
+    "channels",
     # Local apps
     "users",
     "events",
     "venues",
     "tickets",
+    "messaging",
 ]
 
 MIDDLEWARE = [
@@ -65,17 +68,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "upnext.wsgi.application"
 
+# Channels configuration
+ASGI_APPLICATION = "upnext.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        # For production use Redis:
+        # "BACKEND": "channels_redis.core.RedisChannelLayer",
+        # "CONFIG": {
+        #     "hosts": [("127.0.0.1", 6379)],
+        # },
+    },
+}
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME"),
-        "USER": config("DB_USER"),  # Replace with your database user
-        "PASSWORD": config("DB_PASSWORD"),  # Replace with your database password
-        "HOST": config("DB_HOST"),
-        "PORT": config("DB_PORT"),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'upnext',
+        'USER': 'username',  # Replace with your database user
+        'PASSWORD': 'password',  # Replace with your database password
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -149,18 +166,19 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
 }
 
-
+# Email settings
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "webmaster@localhost"
 
+# CSRF settings
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = False
-CORS_ALLOW_CREDENTIALS = True
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True  # In production, specify the allowed origins
+CORS_ALLOW_CREDENTIALS = True
 
 # Swagger settings
 SWAGGER_SETTINGS = {
@@ -199,6 +217,11 @@ LOGGING = {
             "level": "INFO",
         },
         "tickets": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "messaging": {  # Add messaging logger
             "handlers": ["console", "file"],
             "level": "DEBUG",
             "propagate": True,
