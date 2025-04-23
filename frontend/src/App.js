@@ -26,6 +26,7 @@ import BookVenueForm from './components/venues/BookVenueForm';
 import Messages from './components/messaging/Messaging';
 import Conversation from './components/messaging/Conversation';
 import NewConversation from './components/messaging/NewConversation'; // Note the plural 'NewConversations'
+import ResetPassword from './components/forgotpassword/ResetPassword';
 
 import './App.css';
 
@@ -137,11 +138,12 @@ function App() {
         <Route
           path="/forgot-password"
           element={
-            <layout>
+            <Layout>
               <ForgotPassword />
-            </layout>
+            </Layout>
           }
         />
+        <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />

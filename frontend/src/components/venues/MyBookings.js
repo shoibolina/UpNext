@@ -54,26 +54,29 @@ const MyBookings = () => {
       <div className="booking-grid">
       {bookings.map((b) => (
         <div key={b.id} className="booking-card">
-          <h3>{b.venue?.name}</h3>
           {b.venue?.owner?.id === b.booker?.id && (
             <span className="owner-badge">Owner</span>
           )}
-          <p>
-            <strong>Date:</strong> {b.booking_date}
-          </p>
-          <p>
-            <strong>Time:</strong> {b.start_time} - {b.end_time}
-          </p>
-          <p>
-            <strong>Total Price:</strong> ${b.total_price}
-          </p>
-          <p><strong>Booked by:</strong> {b.booker?.username}</p>
-          <p>
-            <strong>Status:</strong>{" "}
-            <span className={b.status === "cancelled" ? "cancelled" : "confirmed"}>
-              {b.status}
-            </span>
-          </p>
+          <h3>{b.venue?.name}</h3>
+          <hr />
+          <div className="booking-details">
+            <p>
+              <strong>Date:</strong> {b.booking_date}
+            </p>
+            <p>
+              <strong>Time:</strong> {b.start_time} - {b.end_time}
+            </p>
+            <p>
+              <strong>Total Price:</strong> ${b.total_price}
+            </p>
+            <p><strong>Booked by:</strong> {b.booker?.username}</p>
+            <p>
+              <strong>Status:</strong>{" "}
+              <span className={b.status === "cancelled" ? "cancelled" : "confirmed"}>
+                {b.status}
+              </span>
+            </p>
+          </div>
 
           <div className="booking-actions">
             <Link to={`/venues/${b.venue?.id}`} className="btn-secondary">

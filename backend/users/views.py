@@ -11,6 +11,14 @@ from .permissions import IsOwnerOrReadOnly
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.views import PasswordResetView
+from rest_framework.views import APIView
+from .email_utils import send_password_reset_email
+from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework.permissions import AllowAny
+from decouple import config
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,6 +28,49 @@ def init_csrf(request):
     return JsonResponse({'detail': 'CSRF cookie set'})
 
 User = get_user_model()
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, uidb64, token):
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"error": "Invalid reset link"}, status=400)
+
+        if not default_token_generator.check_token(user, token):
+            return Response({"error": "Invalid or expired token"}, status=400)
+
+        new_password = request.data.get("password")
+        if not new_password:
+            return Response({"error": "Password is required"}, status=400)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "Password reset successful"})
+    
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"message": "If the email exists, a reset link was sent."})
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        #reset_link = f"http://localhost:3000/reset-password/{uid}/{token}"
+
+        FRONTEND_BASE_URL = config("FRONTEND_BASE_URL")  # from .env
+
+        reset_link = f"{FRONTEND_BASE_URL}/reset-password/{uid}/{token}"
+
+
+        send_password_reset_email(email, reset_link)
+        return Response({"message": "If the email exists, a reset link was sent."})
 
 class RegisterView(generics.CreateAPIView):
     """
