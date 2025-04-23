@@ -22,3 +22,11 @@ coverage==7.2.7
 # Utilities
 python-dateutil==2.8.2
 requests==2.30.0
+
+# Messaging
+daphne
+channels
+drf-nested-routers
+
+# password
+resend

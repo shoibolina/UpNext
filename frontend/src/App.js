@@ -24,6 +24,7 @@ import CreateVenue from "./components/venues/CreateVenue";
 import ManageAvailability from './components/venues/ManageAvailability';
 import BookVenueForm from './components/venues/BookVenueForm';
 import ResetPassword from './components/forgotpassword/ResetPassword';
+import EditVenue from "./components/venues/EditVenue";
 
 import './App.css';
 
@@ -188,7 +189,7 @@ function App() {
         />
 
         <Route path="/venues/:id/book" element={<BookVenueForm />} />
-
+        <Route path="/venues/:id/edit" element={<EditVenue />} />
 
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
