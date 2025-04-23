@@ -23,6 +23,9 @@ import VenueDetail from "./components/venues/VenueDetail";
 import CreateVenue from "./components/venues/CreateVenue";
 import ManageAvailability from './components/venues/ManageAvailability';
 import BookVenueForm from './components/venues/BookVenueForm';
+import Messages from './components/messaging/Messaging';
+import Conversation from './components/messaging/Conversation';
+import NewConversation from './components/messaging/NewConversation'; // Note the plural 'NewConversations'
 import ResetPassword from './components/forgotpassword/ResetPassword';
 import EditVenue from "./components/venues/EditVenue";
 import Messages from './components/messaging/Messaging';
@@ -247,7 +250,6 @@ function App() {
     </ProtectedRoute>
   }
 />
-
 
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
