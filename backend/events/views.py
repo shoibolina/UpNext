@@ -2,14 +2,15 @@
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from .models import Event, EventCategory, EventAttendee, EventComment
+from .models import Event, EventCategory, EventAttendee, EventComment, EventImage
 from .serializers import (
     EventSerializer, EventDetailSerializer, EventCategorySerializer,
-    EventAttendeeSerializer, EventCommentSerializer
+    EventAttendeeSerializer, EventCommentSerializer, EventImageSerializer
 )
 from users.permissions import IsOwnerOrReadOnly, IsOrganizerOrReadOnly
 import logging
@@ -120,6 +121,60 @@ class EventViewSet(viewsets.ModelViewSet):
             
         except Exception as e:
             logger.error(f"Error registering for event: {str(e)}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def remove_attendee(self, request, pk=None):
+        """
+        API endpoint to remove an attendee from an event (organizer only).
+        """
+        try:
+            event = self.get_object()
+            
+            # Check if the user is the organizer
+            if event.organizer != request.user and not request.user.is_staff:
+                return Response(
+                    {'error': 'You do not have permission to remove attendees from this event.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            attendee_id = request.data.get('attendee_id')
+            if not attendee_id:
+                return Response(
+                    {'error': 'Attendee ID is required.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            attendee = get_object_or_404(EventAttendee, id=attendee_id, event=event)
+            
+            with transaction.atomic():
+                # Cancel any active tickets
+                active_tickets = Ticket.objects.filter(attendee=attendee, status='active')
+                for ticket in active_tickets:
+                    ticket.status = 'cancelled'
+                    ticket.save()
+                
+                # Remove the attendee
+                attendee.status = 'cancelled'
+                attendee.save()
+                
+                # Check if there's anyone on the waitlist who can be moved up
+                if event.capacity is not None:
+                    waitlisted = EventAttendee.objects.filter(
+                        event=event, 
+                        status='waitlisted'
+                    ).order_by('registration_date').first()
+                    
+                    if waitlisted:
+                        waitlisted.status = 'registered'
+                        waitlisted.save()
+            
+            return Response({
+                'message': 'Attendee removed successfully.',
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error removing attendee: {str(e)}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
@@ -260,6 +315,49 @@ class EventViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"Error adding comment: {str(e)}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def attendees(self, request, pk=None):
+        """
+        API endpoint to get all attendees for an event (organizer only).
+        """
+        try:
+            # First explicitly check if the user is authenticated to avoid AnonymousUser errors
+            if not request.user.is_authenticated:
+                return Response(
+                    {'error': 'Authentication required to view attendees.'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+                
+            event = self.get_object()
+            
+            # Check if the user is the organizer
+            if event.organizer != request.user and not request.user.is_staff:
+                return Response(
+                    {'error': 'You do not have permission to view attendees for this event.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+                
+            # Get all attendees for the event
+            attendees = EventAttendee.objects.filter(event=event)
+            
+            # Include ticket information for each attendee
+            attendee_data = []
+            for attendee in attendees:
+                attendee_serialized = EventAttendeeSerializer(attendee, context={'request': request}).data
+                # Get active ticket for this attendee if exists
+                ticket = Ticket.objects.filter(attendee=attendee, status='active').first()
+                if ticket:
+                    attendee_serialized['ticket'] = TicketSerializer(ticket, context={'request': request}).data
+                else:
+                    attendee_serialized['ticket'] = None
+                attendee_data.append(attendee_serialized)
+            
+            return Response(attendee_data)
+            
+        except Exception as e:
+            logger.error(f"Error retrieving event attendees: {str(e)}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class EventAttendeeViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -311,3 +409,98 @@ class EventCommentViewSet(viewsets.ModelViewSet):
             logger.error(f"Error creating comment: {str(e)}")
             from rest_framework import serializers
             raise serializers.ValidationError(f"Error creating comment: {str(e)}")
+
+class EventImageViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for event images.
+    """
+    serializer_class = EventImageSerializer
+    permission_classes = [permissions.IsAuthenticated] 
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return EventImage.objects.none()
+        
+        event_id = self.kwargs.get('event_pk')
+        if event_id:
+            return EventImage.objects.filter(event_id=event_id)
+        return EventImage.objects.none()
+    
+    def perform_create(self, serializer):
+        try:
+            event_id = self.kwargs.get('event_pk')
+            event = get_object_or_404(Event, pk=event_id)
+            
+            # Check if user is the organizer
+            if event.organizer != self.request.user and not self.request.user.is_staff:
+                raise PermissionDenied("Only event organizers can upload images")
+                
+            serializer.save(event=event)
+        except Event.DoesNotExist:
+            raise serializers.ValidationError("Event not found")
+        except Exception as e:
+            logger.error(f"Error uploading image: {str(e)}")
+            raise serializers.ValidationError(f"Error uploading image: {str(e)}")
+    
+    @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAuthenticated])
+    def set_primary(self, request, pk=None, event_pk=None):
+        """
+        Set an image as the primary image for the event.
+        """
+        try:
+            image = self.get_object()
+            event = image.event
+            
+            # Check if user is the organizer
+            if event.organizer != request.user and not request.user.is_staff:
+                return Response(
+                    {'error': 'You do not have permission to modify this event.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Update the image as primary
+            image.is_primary = True
+            image.save()  # This will trigger the save method which handles primary image logic
+            
+            return Response({
+                'message': 'Image set as primary successfully.',
+                'image': EventImageSerializer(image).data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error setting primary image: {str(e)}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['delete'], permission_classes=[permissions.IsAuthenticated])
+    def delete_image(self, request, pk=None, event_pk=None):
+        """
+        Delete an image and assign a new primary if needed.
+        """
+        try:
+            image = self.get_object()
+            event = image.event
+            
+            # Check if user is the organizer
+            if event.organizer != request.user and not request.user.is_staff:
+                return Response(
+                    {'error': 'You do not have permission to delete images from this event.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            was_primary = image.is_primary
+            
+            # Delete the image
+            image.delete()
+            
+            # If the deleted image was primary, set a new primary
+            if was_primary:
+                new_primary = event.images.first()
+                if new_primary:
+                    new_primary.is_primary = True
+                    new_primary.save()
+            
+            return Response({'message': 'Image deleted successfully.'}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error deleting image: {str(e)}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

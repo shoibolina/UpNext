@@ -223,12 +223,164 @@ export const addEventComment = async (eventId, content) => {
   }
 };
 
+// Get a user's ticket for an event
+export const getMyTicket = async (eventId) => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to get ticket');
+    }
+    
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/my_ticket/`);
+  } catch (error) {
+    console.error('Error fetching ticket:', error);
+    throw error;
+  }
+};
+
+// Remove an attendee from an event (organizer only)
+export const removeAttendee = async (eventId, attendeeId) => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to remove attendee');
+    }
+    
+    await apiRequest(`${API_URL}/api/v1/events/${eventId}/remove_attendee/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ attendee_id: attendeeId })
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error removing attendee:', error);
+    throw error;
+  }
+};
+
 // Get all event categories
 export const getEventCategories = async () => {
   try {
     return await apiRequest(`${API_URL}/api/v1/event-categories/`);
   } catch (error) {
     console.error('Error fetching categories:', error);
+    throw error;
+  }
+};
+
+// Get all attendees for an event (organizer only)
+export const getEventAttendees = async (eventId) => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to view attendees');
+    }
+    
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/attendees/`);
+  } catch (error) {
+    console.error('Error fetching event attendees:', error);
+    throw error;
+  }
+};
+
+// Image upload functions
+
+// Get all images for an event
+export const getEventImages = async (eventId) => {
+  try {
+    const data = await apiRequest(`${API_URL}/api/v1/events/${eventId}/images/`);
+    
+    // Make sure we always return an array
+    if (Array.isArray(data)) {
+      return data;
+    } else if (data.results && Array.isArray(data.results)) {
+      return data.results;
+    } else {
+      console.warn('API returned unexpected format for event images', data);
+      return []; // Return empty array as fallback
+    }
+  } catch (error) {
+    console.error('Error fetching event images:', error);
+    return []; // Return empty array on error
+  }
+};
+
+// Upload a new image for an event
+export const uploadEventImage = async (eventId, imageFile, caption = '', isPrimary = false) => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to upload images');
+    }
+    
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    
+    if (caption) {
+      formData.append('caption', caption);
+    }
+    
+    formData.append('is_primary', isPrimary ? 'true' : 'false');
+    
+    console.log('Uploading image with FormData:', 
+      Object.fromEntries(formData.entries()));
+    
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/images/`, {
+      method: 'POST',
+      body: formData
+    });
+  } catch (error) {
+    console.error('Error uploading event image:', error);
+    throw error;
+  }
+};
+
+// Delete an event image
+export const deleteEventImage = async (eventId, imageId) => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to delete images');
+    }
+    
+    await apiRequest(`${API_URL}/api/v1/events/${eventId}/images/${imageId}/delete-image/`, {
+      method: 'DELETE'
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting event image:', error);
+    throw error;
+  }
+};
+
+// Set an image as primary
+export const setPrimaryImage = async (eventId, imageId) => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to update images');
+    }
+    
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/images/${imageId}/set-primary/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Error setting primary image:', error);
+    throw error;
+  }
+};
+
+// Update image caption
+export const updateImageCaption = async (eventId, imageId, caption) => {
+  try {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Authentication required to update images');
+    }
+    
+    return await apiRequest(`${API_URL}/api/v1/events/${eventId}/images/${imageId}/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ caption })
+    });
+  } catch (error) {
+    console.error('Error updating image caption:', error);
     throw error;
   }
 };
