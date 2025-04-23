@@ -2,10 +2,11 @@
   padding: 1rem;
 }
 
-.booking-grid {
+.my-bookings .booking-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
+  align-items: flex-start;
 }
 
 
@@ -20,8 +21,10 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   position: relative;
   width: 100%;
+  max-width: 320px;
   overflow: visible;
   align-items: center;
+  min-height: 360px;
 }
 
 .booking-card hr {

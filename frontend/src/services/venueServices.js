@@ -119,4 +119,16 @@ export const fetchWithAuth = async (url, options = {}) => {
     return res.json();
   };
   
-  
+  export const getVenueDetail = async (venueId) => {
+    const res = await fetchWithAuth(`/api/v1/venues/${venueId}/`);
+    if (!res.ok) throw new Error("Failed to fetch venue details");
+    return await res.json();
+  };
+  export const updateVenue = async (venueId, updatedData) => {
+    return fetchWithAuth(`/api/v1/venues/${venueId}/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedData),
+    });
+  };
+    

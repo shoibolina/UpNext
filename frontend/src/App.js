@@ -27,6 +27,7 @@ import Messages from './components/messaging/Messaging';
 import Conversation from './components/messaging/Conversation';
 import NewConversation from './components/messaging/NewConversation'; // Note the plural 'NewConversations'
 import ResetPassword from './components/forgotpassword/ResetPassword';
+import EditVenue from "./components/venues/EditVenue";
 
 import './App.css';
 
@@ -191,6 +192,7 @@ function App() {
         />
 
         <Route path="/venues/:id/book" element={<BookVenueForm />} />
+        <Route path="/venues/:id/edit" element={<EditVenue />} />
 
         <Route
           path="/messages"
@@ -249,9 +251,7 @@ function App() {
      
         
 
-        
-
-
+     
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

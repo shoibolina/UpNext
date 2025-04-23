@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { fetchWithAuth, getVenueDetail } from "../../services/venueServices";
 import authService from "../../services/authService";
@@ -13,6 +13,7 @@ const VenueDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentUser, setCurrentUser] = useState(null);
+  const bookingRef = useRef();
 
 useEffect(() => {
   const fetchUser = async () => {
@@ -46,7 +47,7 @@ useEffect(() => {
   return (
     <div className="venue-detail-container">
       <button
-        className="btn-secondary"
+        className="btn-back"
         onClick={() => {
           if (location.state?.from === "dashboard") {
             navigate("/dashboard", { state: { tab: "venues" } });
@@ -59,51 +60,144 @@ useEffect(() => {
       </button>
 
       <h1>{venue.name}</h1>
-      <p className="venue-address">
-        {venue.address}, {venue.city}, {venue.state} {venue.zip_code}, {venue.country}
-      </p>
+      <div className="venue-header">
+      {/* Left column: */}
+      <div className="venue-left">
+        <p className="venue-address">
+          {venue.address}, {venue.city}, {venue.state} {venue.zip_code}, {venue.country}
+        </p>
 
-      {/* Primary image */}
-      {venue.primary_image && venue.primary_image.image ? (
-        <img
-          src={`http://localhost:8000${venue.primary_image?.image}`}
-          alt={venue.primary_image.caption || 'Venue Image'}
-          style={{ maxWidth: '100%', height: '250px', borderRadius: '8px' }}
-        />
-      ) : (
-        <p>No image available</p>
-      )}
+        {/* Primary image */}
+        {venue.primary_image && venue.primary_image.image ? (
+          <img
+            src={`http://localhost:8000${venue.primary_image?.image}`}
+            alt={venue.primary_image.caption || 'Venue Image'}
+            style={{ maxWidth: '100%', height: '250px', borderRadius: '8px' }}
+          />
+        ) : (
+          <p>No image available</p>
+        )}
 
-      <p className="venue-description">{venue.description}</p>
-      <p><strong>Capacity:</strong> {venue.capacity}</p>
-      <p><strong>Rate:</strong> ${venue.hourly_rate}/hr</p>
-      <p><strong>Owner:</strong> {venue.owner?.username}</p>
+        <p className="venue-description">{venue.description}</p>
+
+        {/* Amenities */}
+        <div className="venue-col">
+          <h3>Amenities</h3>
+          {/* <ul>
+            {venue.amenities.map((a) => (
+              <li key={a.id}>{a.name}</li>
+            ))}
+          </ul> */}
+          <p className="amenities-line">
+            {venue.amenities.map((a, idx) => (
+              <span key={a.id}>
+                {a.name}
+                {idx < venue.amenities.length - 1 && " | "}
+              </span>
+            ))}
+          </p>
+        </div>
+
+        {/* Categories */}
+        <div className="venue-col">
+          <h3>Categories</h3>
+          <ul>
+            {venue.categories.map((cat) => (
+              <li key={cat.id}>{cat.name}</li>
+            ))}
+          </ul>
+        </div>
+      </div> {/* Left column ends*/}
+
+      {/* Right column:*/}
+      <div className="venue-right">
+        {/* <p className="venue-description">{venue.description}</p> */}
+        <p><strong>Capacity:</strong> {venue.capacity}</p>
+        <p><strong>Rate:</strong> ${venue.hourly_rate}/hr</p>
+        <p><strong>Owner:</strong> {venue.owner?.username}</p>
+        {/* Only show to owner */}
+        {/* {venue.owner?.id === currentUser?.id && (
+          <div className="venue-button-group">
+            <Link to={`/venues/${venue.id}/edit`} className="btn-secondary">
+              Edit Venue
+            </Link>
+            <Link to={`/venues/${venue.id}/availability`} state={{ from: "details" }} className="btn-secondary">
+              Manage Availability
+            </Link>
+          </div>
+        )} */}
+
+        {/* Availability */}
+        <div className="venue-col">
+          <h3>Weekly Availability</h3>
+          <ul>
+            {venue.availability.map((slot) => (
+              <li key={slot.id}>
+                <strong>{slot.day_name}:</strong> {slot.opening_time} – {slot.closing_time}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="venue-button-group">
+          {/* Only show to owner */}
+          {venue.owner?.id === currentUser?.id && (
+              <>
+                <Link to={`/venues/${venue.id}/edit`} className="btn-secondary">
+                  Edit Venue
+                </Link>
+                <Link to={`/venues/${venue.id}/availability`} state={{ from: "details" }} className="btn-secondary">
+                  Manage Availability
+                </Link>
+              </>
+            )}
+            <button className="btn-primary" onClick={() => bookingRef.current?.scrollIntoView({ behavior: "smooth" })}>
+              Book This Venue
+            </button>
+          </div>
+
+        {/* Categories */}
+        {/* <div className="venue-section">
+          <h3>Categories</h3>
+          <ul>
+            {venue.categories.map((cat) => (
+              <li key={cat.id}>{cat.name}</li>
+            ))}
+          </ul>
+        </div> */}
+
+        {/* Amenities */}
+        {/* <div className="venue-section">
+          <h3>Amenities</h3> */}
+          {/* <ul>
+            {venue.amenities.map((a) => (
+              <li key={a.id}>{a.name}</li>
+            ))}
+          </ul> */}
+          {/* <p className="amenities-line">
+            {venue.amenities.map((a, idx) => (
+              <span key={a.id}>
+                {a.name}
+                {idx < venue.amenities.length - 1 && " | "}
+              </span>
+            ))}
+          </p>
+        </div> */}
+
+      </div> {/* Right column ends*/}
+      </div> {/* Header ends*/}
+
       {/* Only show to owner */}
-      {venue.owner?.id === currentUser?.id && (
-        <Link to={`/venues/${venue.id}/availability`} state={{ from: "details" }} className="btn-secondary">
-          Manage Availability
-        </Link>
-      )}
-
-      {/* Categories */}
-      <div className="venue-section">
-        <h3>Categories</h3>
-        <ul>
-          {venue.categories.map((cat) => (
-            <li key={cat.id}>{cat.name}</li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Amenities */}
-      <div className="venue-section">
-        <h3>Amenities</h3>
-        <ul>
-          {venue.amenities.map((a) => (
-            <li key={a.id}>{a.name}</li>
-          ))}
-        </ul>
-      </div>
+      {/* {venue.owner?.id === currentUser?.id && (
+          <div className="venue-button-group">
+            <Link to={`/venues/${venue.id}/edit`} className="btn-secondary">
+              Edit Venue
+            </Link>
+            <Link to={`/venues/${venue.id}/availability`} state={{ from: "details" }} className="btn-secondary">
+              Manage Availability
+            </Link>
+          </div>
+        )} */}
 
       {/* Additional Images */}
       {venue.images?.length > 1 && (
@@ -125,7 +219,7 @@ useEffect(() => {
       )}
 
       {/* Availability */}
-      <div className="venue-section">
+      {/* <div className="venue-section">
         <h3>Weekly Availability</h3>
         <ul>
           {venue.availability.map((slot) => (
@@ -134,10 +228,10 @@ useEffect(() => {
             </li>
           ))}
         </ul>
-      </div>
+      </div> */}
 
       {/* Reviews */}
-      <div className="venue-section">
+      {/* <div className="venue-section">
         <h3>Reviews</h3>
         {venue.reviews.length === 0 ? (
           <p>No reviews yet.</p>
@@ -150,11 +244,11 @@ useEffect(() => {
             ))}
           </ul>
         )}
-      </div>
+      </div> */}
 
       {/* Booking Placeholder */}
       <div className="venue-section">
-      <div className="venue-section">
+      <div className="venue-section" ref={bookingRef}>
         <BookVenueForm venueId={venue.id} />
       </div>
       </div>
