@@ -28,6 +28,9 @@ import Conversation from './components/messaging/Conversation';
 import NewConversation from './components/messaging/NewConversation'; // Note the plural 'NewConversations'
 import ResetPassword from './components/forgotpassword/ResetPassword';
 import EditVenue from "./components/venues/EditVenue";
+import Messages from './components/messaging/Messaging';
+import Conversation from './components/messaging/Conversation';
+import NewConversation from './components/messaging/NewConversation'; // Note the plural 'NewConversations'
 
 import './App.css';
 
@@ -248,10 +251,6 @@ function App() {
   }
 />
 
-     
-        
-
-     
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

@@ -81,33 +81,10 @@
     gap: 0.5rem 1rem;
     margin-top: 0.5rem;
   }
-  
-  /* .amenity-option {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-  } */
   .amenity-option {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 40px; /* Ensure consistent height */
+    min-height: 40px;
     padding-right: 8px;
   }
-
-    
-
-  /* .amenities-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 5px 2px;
-  }
-  
-  .amenity-option {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  } */
-  
-   

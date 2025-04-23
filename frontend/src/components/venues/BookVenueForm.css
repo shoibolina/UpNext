@@ -5,12 +5,12 @@
   flex-wrap: wrap;
 }
 
-.booking-form .calendar-section {
+.calendar-section {
   flex: 1;
   min-width: 300px;
 }
 
-.booking-form .timeslot-section {
+.timeslot-section {
   flex: 2;
   padding-left: 2rem;
   min-width: 400px;
@@ -56,7 +56,5 @@
   
   .post-booking-buttons {
     display: flex;
-    /* flex-direction: column; */
-    /* gap: 10px; */
-    align-items: flex-start; /* Aligns buttons to the left */
+    align-items: flex-start;
   }

@@ -7,7 +7,6 @@
   .venue-header {
     display: flex;
     gap: 2rem;
-    /* margin-top: 1rem; */
     align-items: flex-start;
   }
   
@@ -20,12 +19,6 @@
     flex: 1;
   }
 
-  /* .am-h {
-    color: aqua;
-    padding-top: 0%;
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-  } */
   .venue-col {
     margin-top: 1rem;
   }
@@ -53,13 +46,6 @@
     line-height: 1.6;
   }
   
-  /* .primary-image {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    margin-bottom: 1rem;
-  } */
-  
   .image-gallery {
     display: flex;
     gap: 10px;
@@ -82,7 +68,6 @@
     color: white;
     border: none;
     margin-top: 10px;
-    /* padding: 10px 20px; */
     font-weight: bold;
     border-radius: 5px;
     cursor: pointer;
@@ -104,23 +89,6 @@
     justify-content: center;
     height: 48px;
   }
-  
-  /* .btn-secondary {
-    background-color: #eee;
-    padding: 8px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    color: #333;
-    font-weight: 500;
-    border: 1px solid #ccc;
-    transition: background 0.2s;
-  }
-  
-  .btn-secondary:hover {
-    background-color: #ddd;
-  }
-   */
-
    .btn-back {
     background-color: #a3d117;
     color: #f80808;
