@@ -28,9 +28,6 @@ import Conversation from './components/messaging/Conversation';
 import NewConversation from './components/messaging/NewConversation'; // Note the plural 'NewConversations'
 import ResetPassword from './components/forgotpassword/ResetPassword';
 import EditVenue from "./components/venues/EditVenue";
-import Messages from './components/messaging/Messaging';
-import Conversation from './components/messaging/Conversation';
-import NewConversation from './components/messaging/NewConversation'; // Note the plural 'NewConversations'
 
 import './App.css';
 
@@ -229,27 +226,27 @@ function App() {
           }
         />
         <Route
-  path="/profile"
-  element={
-    <ProtectedRoute>
-      <Layout>
-        <Profile />
-      </Layout>
-    </ProtectedRoute>
-  }
-/>
-
-{/* Route for viewing other user profiles */}
-<Route
-  path="/profile/:userId"
-  element={
-    <ProtectedRoute>
-      <Layout>
-        <Profile />
-      </Layout>
-    </ProtectedRoute>
-  }
-/>
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Profile />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Route for viewing other user profiles */}
+        <Route
+          path="/profile/:userId"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Profile />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />
