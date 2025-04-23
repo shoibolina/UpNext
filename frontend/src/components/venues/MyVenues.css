@@ -1,20 +1,64 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+               Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', 
+               sans-serif;
+  -webkit-font-smoothing: antialiased; /* Smoother text on Mac */
+  text-rendering: optimizeLegibility;
+}
+
+.loading {
+  text-align: center;
+  margin: 50px 0;
+  font-size: 18px;
+  color: #fb0606;
+}
+
 .my-venues-container {
-    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .venues-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    margin-top: 10px;
+  }
+  
+  .venues-header h1 {
+    color: #3f51b5;
+    margin: 0;
+    font-size: 1.8rem;
+    padding-top: -10px;
+
   }
   
   .venue-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
   }
   
   .venue-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    padding: 1rem;
-    width: 300px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
+  
+  .venue-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  }
+  .venue-card p {
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    color: #333;
+  }
+   
   
   .venue-card h3 {
     margin-bottom: 0.5rem;
@@ -25,6 +69,17 @@
     padding: 0.5rem;
   }
 
+  .add-venue-card:hover {
+    background-color: #e0e7ff;
+  }
+  .venue-thumbnail {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 0.8rem;
+  }
+    
   .add-venue-card {
     display: flex;
     align-items: center;
@@ -61,4 +116,21 @@
     color: #4f46e5;
   }
   
+  .btn-secondary {
+    display: inline-block;
+    background-color: #4f46e5;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    margin-top: 0.6rem;
+    margin-right: 0.4rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #3730a3;
+  }
   

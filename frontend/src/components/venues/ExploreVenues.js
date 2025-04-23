@@ -68,6 +68,7 @@ const ExploreVenues = () => {
 
   return (
     <div className="explore-venues-container">
+      <div className="explore-header">
       <h1>Explore Venues</h1>
 
       {/* Filter Form */}
@@ -95,6 +96,7 @@ const ExploreVenues = () => {
         />
         <button onClick={applyFilters} className="btn-primary">Filter</button>
       </div>
+      </div>
 
       {/* Venue Cards */}
       <div className="venue-grid">
@@ -110,9 +112,11 @@ const ExploreVenues = () => {
                 </p>
                 <p className="venue-capacity">Capacity: {venue.capacity}</p>
                 <p className="venue-rate">Rate: ${venue.hourly_rate}/hr</p>
-                <Link to={`/venues/${venue.id}`}  state={{ from: "explore" }} className="venue-details-link">
-                View Details
-                </Link>
+                <div className="venue-btn-wrapper">
+                  <Link to={`/venues/${venue.id}`}  state={{ from: "explore" }} className="btn-view">
+                  View Details
+                  </Link>
+                </div>
             </div>
             ))
         )}
