@@ -25,6 +25,9 @@ import ManageAvailability from './components/venues/ManageAvailability';
 import BookVenueForm from './components/venues/BookVenueForm';
 import ResetPassword from './components/forgotpassword/ResetPassword';
 import EditVenue from "./components/venues/EditVenue";
+import Messages from './components/messaging/Messaging';
+import Conversation from './components/messaging/Conversation';
+import NewConversation from './components/messaging/NewConversation'; // Note the plural 'NewConversations'
 
 import './App.css';
 
@@ -190,6 +193,61 @@ function App() {
 
         <Route path="/venues/:id/book" element={<BookVenueForm />} />
         <Route path="/venues/:id/edit" element={<EditVenue />} />
+
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Messages />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/messages/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Conversation />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messages/new"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <NewConversation />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+  path="/profile"
+  element={
+    <ProtectedRoute>
+      <Layout>
+        <Profile />
+      </Layout>
+    </ProtectedRoute>
+  }
+/>
+
+{/* Route for viewing other user profiles */}
+<Route
+  path="/profile/:userId"
+  element={
+    <ProtectedRoute>
+      <Layout>
+        <Profile />
+      </Layout>
+    </ProtectedRoute>
+  }
+/>
+
 
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" />} />

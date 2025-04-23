@@ -102,15 +102,6 @@ const ManageAvailability = () => {
           ))}
         </select>
 
-        {/* <label>
-            <input
-                type="checkbox"
-                checked={repeatWeekly}
-                onChange={(e) => setRepeatWeekly(e.target.checked)}
-            />
-            Repeat Weekly
-        </label> */}
-
         <input
           type="time"
           value={openingTime}

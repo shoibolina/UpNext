@@ -83,11 +83,6 @@ useEffect(() => {
         {/* Amenities */}
         <div className="venue-col">
           <h3>Amenities</h3>
-          {/* <ul>
-            {venue.amenities.map((a) => (
-              <li key={a.id}>{a.name}</li>
-            ))}
-          </ul> */}
           <p className="amenities-line">
             {venue.amenities.map((a, idx) => (
               <span key={a.id}>
@@ -111,21 +106,9 @@ useEffect(() => {
 
       {/* Right column:*/}
       <div className="venue-right">
-        {/* <p className="venue-description">{venue.description}</p> */}
         <p><strong>Capacity:</strong> {venue.capacity}</p>
         <p><strong>Rate:</strong> ${venue.hourly_rate}/hr</p>
         <p><strong>Owner:</strong> {venue.owner?.username}</p>
-        {/* Only show to owner */}
-        {/* {venue.owner?.id === currentUser?.id && (
-          <div className="venue-button-group">
-            <Link to={`/venues/${venue.id}/edit`} className="btn-secondary">
-              Edit Venue
-            </Link>
-            <Link to={`/venues/${venue.id}/availability`} state={{ from: "details" }} className="btn-secondary">
-              Manage Availability
-            </Link>
-          </div>
-        )} */}
 
         {/* Availability */}
         <div className="venue-col">
@@ -156,48 +139,8 @@ useEffect(() => {
             </button>
           </div>
 
-        {/* Categories */}
-        {/* <div className="venue-section">
-          <h3>Categories</h3>
-          <ul>
-            {venue.categories.map((cat) => (
-              <li key={cat.id}>{cat.name}</li>
-            ))}
-          </ul>
-        </div> */}
-
-        {/* Amenities */}
-        {/* <div className="venue-section">
-          <h3>Amenities</h3> */}
-          {/* <ul>
-            {venue.amenities.map((a) => (
-              <li key={a.id}>{a.name}</li>
-            ))}
-          </ul> */}
-          {/* <p className="amenities-line">
-            {venue.amenities.map((a, idx) => (
-              <span key={a.id}>
-                {a.name}
-                {idx < venue.amenities.length - 1 && " | "}
-              </span>
-            ))}
-          </p>
-        </div> */}
-
       </div> {/* Right column ends*/}
       </div> {/* Header ends*/}
-
-      {/* Only show to owner */}
-      {/* {venue.owner?.id === currentUser?.id && (
-          <div className="venue-button-group">
-            <Link to={`/venues/${venue.id}/edit`} className="btn-secondary">
-              Edit Venue
-            </Link>
-            <Link to={`/venues/${venue.id}/availability`} state={{ from: "details" }} className="btn-secondary">
-              Manage Availability
-            </Link>
-          </div>
-        )} */}
 
       {/* Additional Images */}
       {venue.images?.length > 1 && (
@@ -218,33 +161,6 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Availability */}
-      {/* <div className="venue-section">
-        <h3>Weekly Availability</h3>
-        <ul>
-          {venue.availability.map((slot) => (
-            <li key={slot.id}>
-              <strong>{slot.day_name}:</strong> {slot.opening_time} – {slot.closing_time}
-            </li>
-          ))}
-        </ul>
-      </div> */}
-
-      {/* Reviews */}
-      {/* <div className="venue-section">
-        <h3>Reviews</h3>
-        {venue.reviews.length === 0 ? (
-          <p>No reviews yet.</p>
-        ) : (
-          <ul>
-            {venue.reviews.map((review) => (
-              <li key={review.id}>
-               {review.rating} – <em>{review.comment}</em> (by {review.user.username})
-              </li>
-            ))}
-          </ul>
-        )}
-      </div> */}
 
       {/* Booking Placeholder */}
       <div className="venue-section">
