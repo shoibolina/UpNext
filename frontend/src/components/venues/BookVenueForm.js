@@ -243,59 +243,64 @@ const BookVenueForm = ({ venueId }) => {
   return (
     <div className="booking-form">
       <h3>Book This Venue</h3>
-      <div style={{ marginBottom: "1rem" }}>
-        {/* <Calendar onChange={setSelectedDate} value={selectedDate} /> */}
-        <Calendar
-          onChange={setSelectedDate}
-          value={selectedDate}
-          tileDisabled={({ date }) => {
-            const weekday = (date.getDay() + 6) % 7;
-            const allowedDays = availability.map((a) => a.day_of_week);
-            return !allowedDays.includes(weekday); // Disable if not in availability
-          }}
-        />
-      </div>
+      <div className="booking-grid">
+        <div className="calendar-section" style={{ marginBottom: "1rem" }}>
+          {/* <Calendar onChange={setSelectedDate} value={selectedDate} /> */}
+          <Calendar
+            onChange={setSelectedDate}
+            value={selectedDate}
+            tileDisabled={({ date }) => {
+              const weekday = (date.getDay() + 6) % 7;
+              const allowedDays = availability.map((a) => a.day_of_week);
+              return !allowedDays.includes(weekday); // Disable if not in availability
+            }}
+          />
+        </div>
 
-      {timeSlots.length > 0 ? (
-        <div>
-          <h4>Available Time Slots for {selectedDate.toDateString()}</h4>
-          <ul className="timeslot-list">
-            {timeSlots.map((slot, idx) => {
-              const isSelected = selectedSlots.some(s => s.start === slot.start && s.end === slot.end);
-              return (
-                <li
-                  key={idx}
-                  className={`timeslot ${isSelected ? "selected" : ""}`}
-                  onClick={() => toggleSlotSelection(slot)}
-                >
-                  {slot.label}
-                </li>
-              );
-            })}
-          </ul>
 
-          {selectedSlots.length > 0 && (
-            <p>
-              <strong>Total Price:</strong> ${totalPrice.toFixed(2)}
-            </p>
-          )}
+        <div className="timeslot-section">
+          {timeSlots.length > 0 ? (
+            <div>
+              <h4>Available Time Slots for {selectedDate.toDateString()}</h4>
+              <ul className="timeslot-list">
+                {timeSlots.map((slot, idx) => {
+                  const isSelected = selectedSlots.some(s => s.start === slot.start && s.end === slot.end);
+                  return (
+                    <li
+                      key={idx}
+                      className={`timeslot ${isSelected ? "selected" : ""}`}
+                      onClick={() => toggleSlotSelection(slot)}
+                    >
+                      {slot.label}
+                    </li>
+                  );
+                })}
+              </ul>
 
-          {!bookingSuccess ? (
-            <button onClick={handleBooking} disabled={!selectedSlots.length}>
-              Confirm Booking
-            </button>
-          ) : (
-            <div className="post-booking-buttons">
-              <button onClick={() => navigate(`/venues/${id}`)}>Go to Venue Detail</button>
-              <button onClick={() => navigate("/dashboard", { state: { tab: "bookings" } })}>
-                View My Bookings
-              </button>
+              {selectedSlots.length > 0 && (
+                <p>
+                  <strong>Total Price:</strong> ${totalPrice.toFixed(2)}
+                </p>
+              )}
+
+              {!bookingSuccess ? (
+                <button className="btn-primary" onClick={handleBooking} disabled={!selectedSlots.length}>
+                  Confirm Booking
+                </button>
+              ) : (
+                <div className="post-booking-buttons">
+                  <button className="btn-secondary" onClick={() => navigate(`/venues/${id}`)}>Go to Venue Detail</button>
+                  <button className="btn-primary" onClick={() => navigate("/dashboard", { state: { tab: "bookings" } })}>
+                    View My Bookings
+                  </button>
+                </div>
+              )}
             </div>
+          ) : (
+            <p>No available slots for this date.</p>
           )}
         </div>
-      ) : (
-        <p>No available slots for this date.</p>
-      )}
+      </div>
     </div>
   );
 };

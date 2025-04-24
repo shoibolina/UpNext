@@ -63,11 +63,6 @@ body {
   .venue-card h3 {
     margin-bottom: 0.5rem;
   }
-  
-  .venue-card button {
-    margin-top: 0.5rem;
-    padding: 0.5rem;
-  }
 
   .add-venue-card:hover {
     background-color: #e0e7ff;
