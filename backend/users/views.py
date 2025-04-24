@@ -11,14 +11,66 @@ from .permissions import IsOwnerOrReadOnly
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.views import PasswordResetView
+from rest_framework.views import APIView
+from .email_utils import send_password_reset_email
+from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework.permissions import AllowAny
+from decouple import config
+import logging
 
+logger = logging.getLogger(__name__)
 
 @ensure_csrf_cookie
 def init_csrf(request):
     return JsonResponse({'detail': 'CSRF cookie set'})
 
-
 User = get_user_model()
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, uidb64, token):
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"error": "Invalid reset link"}, status=400)
+
+        if not default_token_generator.check_token(user, token):
+            return Response({"error": "Invalid or expired token"}, status=400)
+
+        new_password = request.data.get("password")
+        if not new_password:
+            return Response({"error": "Password is required"}, status=400)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "Password reset successful"})
+    
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"message": "If the email exists, a reset link was sent."})
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        #reset_link = f"http://localhost:3000/reset-password/{uid}/{token}"
+
+        FRONTEND_BASE_URL = config("FRONTEND_BASE_URL")  # from .env
+
+        reset_link = f"{FRONTEND_BASE_URL}/reset-password/{uid}/{token}"
+
+
+        send_password_reset_email(email, reset_link)
+        return Response({"message": "If the email exists, a reset link was sent."})
 
 class RegisterView(generics.CreateAPIView):
     """
@@ -68,6 +120,27 @@ class UserViewSet(viewsets.ModelViewSet):
             
         return queryset
     
+    @action(detail=False, methods=['get'], url_path='search')
+    def search(self, request):
+        """
+        API endpoint to search users by username, first_name, or last_name.
+        """
+        search_term = request.query_params.get('q', request.query_params.get('query', '')).strip()
+        if not search_term:
+            return Response([], status=status.HTTP_200_OK)
+
+        # Search users by username, first_name, or last_name (case-insensitive)
+        users = User.objects.filter(
+            username__icontains=search_term
+        ) | User.objects.filter(
+            first_name__icontains=search_term
+        ) | User.objects.filter(
+            last_name__icontains=search_term
+        )
+
+        serializer = self.get_serializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     @action(detail=False, methods=['get'])
     def me(self, request):
         """
@@ -84,6 +157,92 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def follow(self, request, pk=None):
+        """
+        API endpoint to follow a user.
+        """
+        user_to_follow = self.get_object()
+        if request.user.pk == user_to_follow.pk:
+            error_msg = 'You cannot follow yourself'
+            logger.error(f"Follow failed: {error_msg} (user_id={request.user.pk}, target_id={pk})")
+            return Response({
+                'status': 'error', 
+                'message': error_msg
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        success = request.user.follow(user_to_follow)
+        if success:
+            logger.info(f"Follow successful: user_id={request.user.pk} followed target_id={pk}")
+            # Serialize the updated target user
+            serializer = self.get_serializer(user_to_follow, context={'request': request})
+            return Response({
+                'status': 'success', 
+                'message': f'You are now following {user_to_follow.username}',
+                'user': serializer.data
+            })
+        else:
+            error_msg = 'Unable to follow user (possibly already following)'
+            logger.error(f"Follow failed: {error_msg} (user_id={request.user.pk}, target_id={pk})")
+            return Response({
+                'status': 'error', 
+                'message': error_msg
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def unfollow(self, request, pk=None):
+        """
+        API endpoint to unfollow a user.
+        """
+        user_to_unfollow = self.get_object()
+        request.user.unfollow(user_to_unfollow)
+        logger.info(f"Unfollow successful: user_id={request.user.pk} unfollowed target_id={pk}")
+        # Serialize the updated target user
+        serializer = self.get_serializer(user_to_unfollow, context={'request': request})
+        return Response({
+            'status': 'success', 
+            'message': f'You have unfollowed {user_to_unfollow.username}',
+            'user': serializer.data
+        })
+    
+    @action(detail=False, methods=['get'])
+    def followers(self, request):
+        """
+        API endpoint to get the current user's followers.
+        """
+        followers = request.user.followers.all()
+        serializer = self.get_serializer(followers, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def following(self, request):
+        """
+        API endpoint to get the users the current user is following.
+        """
+        following = request.user.following.all()
+        serializer = self.get_serializer(following, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def user_followers(self, request, pk=None):
+        """
+        API endpoint to get a specific user's followers.
+        """
+        user = self.get_object()
+        followers = user.followers.all()
+        serializer = self.get_serializer(followers, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def user_following(self, request, pk=None):
+        """
+        API endpoint to get users a specific user is following.
+        """
+        user = self.get_object()
+        following = user.following.all()
+        serializer = self.get_serializer(following, many=True, context={'request': request})
         return Response(serializer.data)
     
     @action(detail=False, methods=['POST'], url_path='upload_profile_image', parser_classes=[MultiPartParser, FormParser])
@@ -105,7 +264,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user.save()
         
         # Return the updated user data
-        serializer = self.get_serializer(user)
+        serializer = self.get_serializer(user, context={'request': request})
         return Response(serializer.data)
     
     @action(detail=False, methods=['POST'], url_path='upload_cover_photo', parser_classes=[MultiPartParser, FormParser])
@@ -115,19 +274,16 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         user = request.user
         
-        # Check if cover_photo is in the request data
         if 'cover_photo' not in request.FILES:
             return Response(
                 {'detail': 'No image file provided'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Update the user's cover_photo field
         user.cover_photo = request.FILES['cover_photo']
         user.save()
         
-        # Return the updated user data
-        serializer = self.get_serializer(user)
+        serializer = self.get_serializer(user, context={'request': request})
         return Response(serializer.data)
 
 class UserProfileViewSet(viewsets.ModelViewSet):
@@ -139,7 +295,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     
     def get_queryset(self):
-        # Check if this is a schema generation request
         if getattr(self, 'swagger_fake_view', False):
             return UserProfile.objects.none()
             

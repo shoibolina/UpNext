@@ -23,6 +23,7 @@ import VenueDetail from "./components/venues/VenueDetail";
 import CreateVenue from "./components/venues/CreateVenue";
 import ManageAvailability from './components/venues/ManageAvailability';
 import BookVenueForm from './components/venues/BookVenueForm';
+import ResetPassword from './components/forgotpassword/ResetPassword';
 
 import './App.css';
 
@@ -134,11 +135,12 @@ function App() {
         <Route
           path="/forgot-password"
           element={
-            <layout>
+            <Layout>
               <ForgotPassword />
-            </layout>
+            </Layout>
           }
         />
+        <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />

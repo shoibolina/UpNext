@@ -4,7 +4,9 @@ import * as eventServices from '../../services/eventServices';
 import * as ticketService from '../../services/ticketService';
 import authService from '../../services/authService';
 import Ticket from '../tickets/Ticket';
+import AttendeeList from './AttendeeList';
 import './EventDetail.css';
+import messagingService from '../../services/messagingService';
 
 function EventDetail() {
   const { id } = useParams();
@@ -18,7 +20,13 @@ function EventDetail() {
   const [ticket, setTicket] = useState(null);
   const [ticketLoading, setTicketLoading] = useState(false);
   const [showTicket, setShowTicket] = useState(false);
+  const [showAttendees, setShowAttendees] = useState(false);
   const [ticketError, setTicketError] = useState(null);
+  
+  // State for event images
+  const [eventImages, setEventImages] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageLoading, setImageLoading] = useState(false);
 
   // Check authentication status
   useEffect(() => {
@@ -32,6 +40,9 @@ function EventDetail() {
         setLoading(true);
         const data = await eventServices.getEventById(id);
         setEvent(data);
+        
+        // Also fetch event images
+        fetchEventImages();
       } catch (err) {
         console.error('Error fetching event details:', err);
         setError('Failed to load event details. The event may not exist or has been removed.');
@@ -44,7 +55,37 @@ function EventDetail() {
       fetchEvent();
     }
   }, [id]);
-
+  
+ 
+const fetchEventImages = async () => {
+  try {
+    setImageLoading(true);
+    const images = await eventServices.getEventImages(id);
+    
+    // Check if images is an array before using array methods
+    if (Array.isArray(images)) {
+      setEventImages(images);
+      
+      // Find primary image index only if there are images
+      if (images.length > 0) {
+        const primaryIndex = images.findIndex(img => img.is_primary);
+        if (primaryIndex !== -1) {
+          setCurrentImageIndex(primaryIndex);
+        }
+      }
+    } else {
+      // If not an array, set an empty array
+      console.log('API returned unexpected format for images', images);
+      setEventImages([]);
+    }
+  } catch (err) {
+    console.error('Error fetching event images:', err);
+    // Set to empty array on error
+    setEventImages([]);
+  } finally {
+    setImageLoading(false);
+  }
+};
   // Fetch ticket if user is registered
   useEffect(() => {
     const fetchTicket = async () => {
@@ -150,6 +191,31 @@ function EventDetail() {
     navigate(`/ticket-verification/${id}`);
   };
 
+  const handleManageAttendees = () => {
+    setShowAttendees(true);
+  };
+
+  const handleCloseAttendeesList = () => {
+    setShowAttendees(false);
+  };
+  
+  // Image navigation
+  const nextImage = () => {
+    if (eventImages.length > 1) {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === eventImages.length - 1 ? 0 : prevIndex + 1
+      );
+    }
+  };
+  
+  const prevImage = () => {
+    if (eventImages.length > 1) {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === 0 ? eventImages.length - 1 : prevIndex - 1
+      );
+    }
+  };
+
   const formatEventDate = (date, time) => {
     const dateObj = new Date(`${date}T${time}`);
     return dateObj.toLocaleDateString('en-US', {
@@ -198,6 +264,13 @@ function EventDetail() {
         </div>
       )}
 
+      {showAttendees && (
+        <AttendeeList 
+          eventId={id} 
+          onClose={handleCloseAttendeesList} 
+        />
+      )}
+
       <div className="event-detail-header">
         <h1>{event.title}</h1>
         <div className="event-meta">
@@ -214,9 +287,57 @@ function EventDetail() {
 
       <div className="event-detail-content">
         <div className="event-main-info">
-          {event.image && (
+          {/* Image Gallery */}
+          {eventImages && eventImages.length > 0 ? (
+            <div className="event-image-gallery">
+              <div className="primary-image">
+                <img 
+                  src={eventImages[currentImageIndex].image} 
+                  alt={eventImages[currentImageIndex].caption || event.title} 
+                />
+                {eventImages[currentImageIndex].caption && (
+                  <div className="image-caption">
+                    {eventImages[currentImageIndex].caption}
+                  </div>
+                )}
+                {eventImages.length > 1 && (
+                  <div className="image-navigation">
+                    <button className="nav-btn prev" onClick={prevImage}>
+                      &lsaquo;
+                    </button>
+                    <div className="pagination">
+                      {currentImageIndex + 1} / {eventImages.length}
+                    </div>
+                    <button className="nav-btn next" onClick={nextImage}>
+                      &rsaquo;
+                    </button>
+                  </div>
+                )}
+              </div>
+              {eventImages.length > 1 && (
+                <div className="image-thumbnails">
+                  {eventImages.map((img, index) => (
+                    <div 
+                      key={img.id} 
+                      className={`thumbnail ${index === currentImageIndex ? 'active' : ''}`}
+                      onClick={() => setCurrentImageIndex(index)}
+                    >
+                      <img 
+                        src={img.image} 
+                        alt={img.caption || `Thumbnail ${index + 1}`} 
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : event.image ? (
             <div className="event-image">
               <img src={event.image} alt={event.title} />
+            </div>
+          ) : (
+            <div className="no-image-placeholder">
+              <p>No image available</p>
             </div>
           )}
 
@@ -285,6 +406,9 @@ function EventDetail() {
                   </Link>
                   <button className="btn-primary" onClick={handleVerifyTickets}>
                     Verify Tickets
+                  </button>
+                  <button className="btn-secondary" onClick={handleManageAttendees}>
+                    Manage Attendees
                   </button>
                 </>
               ) : event.is_attending ? (
@@ -361,7 +485,34 @@ function EventDetail() {
               <i className="icon-organizer"></i>
               <div>
                 <strong>Organizer</strong>
-                <p>{event.organizer?.username || event.organizer?.email || 'Unknown'}</p>
+                <div className="organizer-info">
+                  {event.organizer ? (
+                    <>
+                      <Link to={`/profile/${event.organizer.id}`} className="organizer-link">
+                        {event.organizer.username || event.organizer.email || 'Unknown'}
+                      </Link>
+                      <button 
+                        className="btn-message" 
+                        onClick={async () => {
+                          try {
+                            // Use the messaging service to get or create a direct chat
+                            const response = await messagingService.getDirectChat(event.organizer.id);
+                            // Navigate directly to the conversation
+                            navigate(`/messages/${response.id}`);
+                          } catch (err) {
+                            console.error('Error starting chat:', err);
+                            alert('Could not start chat. Please try again.');
+                          }
+                        }}
+                        title="Message Organizer"
+                      >
+                        <i className="icon-message"></i> Message
+                      </button>
+                    </>
+                  ) : (
+                    <span>Unknown</span>
+                  )}
+                </div>
               </div>
             </div>
           </div>

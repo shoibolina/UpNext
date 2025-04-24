@@ -33,11 +33,14 @@ const MyVenues = () => {
     }
   };
 
-  if (loading) return <p>Loading your venues...</p>;
+  if (loading) return <p className="loading">Loading your venues...</p>;
+
 
   return (
     <div className="my-venues-container">
-      <h1>My Venues</h1>
+      <div className="venues-header">
+        <h2>My Venues</h2>
+      </div>
       <div className="venue-grid">
         {venues.length === 0 ? (
           <p>You haven't added any venues yet.</p>

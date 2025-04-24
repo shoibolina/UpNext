@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as eventServices from '../../services/eventServices';
 import authService from '../../services/authService';
-import './CreateEvent.css';
+import './EventEdit.css';
 
 function EventEdit() {
   const { id } = useParams();
@@ -27,30 +27,33 @@ function EventEdit() {
     category_ids: []
   });
 
+  const [images, setImages] = useState([]);
+  const [newImage, setNewImage] = useState(null);
+  const [imageCaption, setImageCaption] = useState('');
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [imageActionLoading, setImageActionLoading] = useState({}); 
+
   useEffect(() => {
     const fetchEventData = async () => {
       try {
-        // Check auth
         if (!authService.isAuthenticated()) {
           navigate('/login', { state: { from: `/events/${id}/edit` } });
           return;
         }
 
-        // Fetch event data
         const eventData = await eventServices.getEventById(id);
-        
-        // Check if user is organizer
         const currentUser = await authService.getCurrentUser();
         if (eventData.organizer.id !== currentUser.id) {
           setError("You don't have permission to edit this event");
           return;
         }
 
-        // Fetch categories
         const categoriesData = await eventServices.getEventCategories();
         setCategories(categoriesData);
 
-        // Format date and time from API response
         setFormData({
           title: eventData.title || '',
           description: eventData.description || '',
@@ -67,6 +70,8 @@ function EventEdit() {
           status: eventData.status || 'published',
           category_ids: eventData.categories.map(cat => cat.id) || []
         });
+
+        await fetchEventImages();
       } catch (err) {
         console.error('Error fetching event data:', err);
         setError('Failed to load event data. Please try again.');
@@ -78,11 +83,20 @@ function EventEdit() {
     fetchEventData();
   }, [id, navigate]);
 
+  const fetchEventImages = async () => {
+    try {
+      const imageData = await eventServices.getEventImages(id);
+      setImages(imageData);
+    } catch (err) {
+      console.error('Error fetching event images:', err);
+      setImageError('Failed to load event images');
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
     if (name === 'category_ids') {
-      // Handle multi-select categories
       const categoryId = parseInt(value);
       const isSelected = checked || e.target.selected;
       
@@ -98,11 +112,97 @@ function EventEdit() {
         return prev;
       });
     } else {
-      // Handle other form fields
       setFormData(prev => ({
         ...prev,
         [name]: type === 'checkbox' ? checked : value
       }));
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      setNewImage(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+      setImageError(null);
+    }
+  };
+
+  const handleCaptionChange = (e) => {
+    setImageCaption(e.target.value);
+  };
+
+  const handleImageUpload = async (e) => {
+    e.preventDefault();
+    
+    if (!newImage) {
+      setImageError('Please select an image to upload');
+      return;
+    }
+    
+    try {
+      setUploadingImage(true);
+      setImageError(null);
+      setSuccessMessage(null);
+      
+      const isPrimary = images.length === 0;
+      await eventServices.uploadEventImage(id, newImage, imageCaption, isPrimary);
+      
+      // Clean up preview URL
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      
+      setNewImage(null);
+      setImageCaption('');
+      setImagePreview(null);
+      await fetchEventImages();
+      setSuccessMessage('Image uploaded successfully');
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      setImageError(err.response?.data?.error || err.message || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    if (window.confirm('Are you sure you want to delete this image?')) {
+      try {
+        setImageActionLoading(prev => ({ ...prev, [imageId]: true }));
+        setImageError(null);
+        setSuccessMessage(null);
+        
+        await eventServices.deleteEventImage(id, imageId);
+        await fetchEventImages();
+        setSuccessMessage('Image deleted successfully');
+      } catch (err) {
+        console.error('Error deleting image:', err);
+        setImageError(err.response?.data?.error || err.message || 'Failed to delete image');
+      } finally {
+        setImageActionLoading(prev => ({ ...prev, [imageId]: false }));
+      }
+    }
+  };
+
+  const handleSetPrimary = async (imageId) => {
+    try {
+      setImageActionLoading(prev => ({ ...prev, [imageId]: true }));
+      setImageError(null);
+      setSuccessMessage(null);
+      
+      await eventServices.setPrimaryImage(id, imageId);
+      await fetchEventImages();
+      setSuccessMessage('Primary image updated');
+    } catch (err) {
+      console.error('Error setting primary image:', err);
+      setImageError(err.response?.data?.error || err.message || 'Failed to set primary image');
+    } finally {
+      setImageActionLoading(prev => ({ ...prev, [imageId]: false }));
     }
   };
 
@@ -112,28 +212,17 @@ function EventEdit() {
     setError(null);
 
     try {
-      // Prepare data for API - match the expected format in Django serializer
       const eventData = {
         ...formData,
-        // Convert capacity to number or null
         capacity: formData.capacity ? parseInt(formData.capacity) : null,
-        // Convert price to number or null
         price: !formData.is_free && formData.price ? parseFloat(formData.price) : null
       };
-
-      // Send to API
       const updatedEvent = await eventServices.updateEvent(id, eventData);
-      
       console.log('Event updated successfully:', updatedEvent);
-      
-      // Redirect to the event detail page
       navigate(`/events/${id}`);
     } catch (err) {
       console.error('Error updating event:', err);
-      setError(
-        err.message || 
-        'Failed to update event. Please check your form and try again.'
-      );
+      setError(err.response?.data?.error || err.message || 'Failed to update event. Please check your form and try again.');
     } finally {
       setSubmitting(false);
     }
@@ -145,7 +234,7 @@ function EventEdit() {
 
   if (error && !formData.title) {
     return (
-      <div className="create-event-container">
+      <div className="event-edit-container">
         <div className="error-message">{error}</div>
         <button className="btn-primary" onClick={() => navigate('/dashboard')}>
           Back to Dashboard
@@ -155,7 +244,7 @@ function EventEdit() {
   }
 
   return (
-    <div className="create-event-container">
+    <div className="event-edit-container">
       <h1>Edit Event</h1>
       
       {error && <div className="error-message">{error}</div>}
@@ -339,6 +428,92 @@ function EventEdit() {
           </div>
         )}
         
+        {/* Event Images Section */}
+        <div className="form-section">
+          <h2>Event Images</h2>
+          {imageError && <div className="error-message">{imageError}</div>}
+          {successMessage && <div className="success-message">{successMessage}</div>}
+          
+          <div className="images-gallery">
+            {images.length > 0 ? (
+              images.map((image) => (
+                <div key={image.id} className={`image-card ${image.is_primary ? 'primary-image' : ''}`}>
+                  <div className="image-container">
+                    <img src={image.image} alt={image.caption || 'Event image'} />
+                    {image.is_primary && <span className="primary-badge">Primary</span>}
+                  </div>
+                  <div className="image-caption">
+                    {image.caption || 'No caption'}
+                  </div>
+                  <div className="image-actions">
+                    {!image.is_primary && (
+                      <button 
+                        type="button" 
+                        className="btn-secondary btn-small"
+                        onClick={() => handleSetPrimary(image.id)}
+                        disabled={imageActionLoading[image.id]}
+                      >
+                        {imageActionLoading[image.id] ? 'Setting...' : 'Set as Primary'}
+                      </button>
+                    )}
+                    <button 
+                      type="button" 
+                      className="btn-danger btn-small"
+                      onClick={() => handleDeleteImage(image.id)}
+                      disabled={imageActionLoading[image.id]}
+                    >
+                      {imageActionLoading[image.id] ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="empty-message">No images uploaded yet</p>
+            )}
+          </div>
+          
+          <div className="image-upload-form">
+            <h3>Upload New Image</h3>
+            <div className="form-group">
+              <label htmlFor="new-image">Select Image*</label>
+              <input
+                type="file"
+                id="new-image"
+                accept="image/*"
+                onChange={handleImageChange}
+                disabled={uploadingImage}
+              />
+            </div>
+            
+            {imagePreview && (
+              <div className="image-preview">
+                <img src={imagePreview} alt="Preview" />
+              </div>
+            )}
+            
+            <div className="form-group">
+              <label htmlFor="image-caption">Caption (Optional)</label>
+              <input
+                type="text"
+                id="image-caption"
+                value={imageCaption}
+                onChange={handleCaptionChange}
+                placeholder="Enter image caption"
+                disabled={uploadingImage}
+              />
+            </div>
+            
+            <button 
+              type="button" 
+              className="btn-secondary"
+              onClick={handleImageUpload}
+              disabled={!newImage || uploadingImage}
+            >
+              {uploadingImage ? 'Uploading...' : 'Upload Image'}
+            </button>
+          </div>
+        </div>
+        
         <div className="form-actions">
           <button type="submit" className="btn-primary" disabled={submitting}>
             {submitting ? 'Saving...' : 'Save Changes'}
@@ -347,6 +522,7 @@ function EventEdit() {
             type="button" 
             className="btn-secondary"
             onClick={() => navigate(`/events/${id}`)}
+            disabled={submitting}
           >
             Cancel
           </button>
