@@ -39,7 +39,7 @@ const TextAreaField = ({ label, name, value, onChange, rows = 4 }) => (
 );
 
 // Enhanced error message component
-const ErrorMessage = ({ message, onDismiss }) => 
+const ErrorMessage = ({ message, onDismiss }) =>
   message ? (
     <div className="error-message">
       <p>{message}</p>
@@ -48,18 +48,18 @@ const ErrorMessage = ({ message, onDismiss }) =>
   ) : null;
 
 // Modal component for followers/following
-const ConnectionsModal = ({ 
-  isOpen, 
-  onClose, 
-  connectionType, 
-  connections, 
-  loadConnections, 
-  searchTerm, 
-  setSearchTerm, 
-  loadingConnections, 
-  currentUserId, 
-  navigateToProfile, 
-  handleDirectMessage, 
+const ConnectionsModal = ({
+  isOpen,
+  onClose,
+  connectionType,
+  connections,
+  loadConnections,
+  searchTerm,
+  setSearchTerm,
+  loadingConnections,
+  currentUserId,
+  navigateToProfile,
+  handleDirectMessage,
   userId,
   followersCount,
   followingCount
@@ -88,17 +88,17 @@ const ConnectionsModal = ({
 
   // Handler for search with debounce
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-  
+
   useEffect(() => {
     const timerId = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
     }, 300);
-    
+
     return () => {
       clearTimeout(timerId);
     };
   }, [searchTerm]);
-  
+
   useEffect(() => {
     if (isOpen) {
       loadConnections(connectionType);
@@ -128,14 +128,14 @@ const ConnectionsModal = ({
     <div className="modal-overlay" onClick={handleClickOutside}>
       <div className="modal-container" ref={modalRef}>
         <div className="modal-header">
-          <h3>{connectionType === 'followers' ? 'Followers' : 'Following'} 
+          <h3>{connectionType === 'followers' ? 'Followers' : 'Following'}
             <span className="connection-count">
               {connectionType === 'followers' ? followersCount : followingCount}
             </span>
           </h3>
           <button className="modal-close-btn" onClick={onClose}>×</button>
         </div>
-        
+
         <div className="modal-search">
           <input
             ref={searchInputRef}
@@ -151,7 +151,7 @@ const ConnectionsModal = ({
             </button>
           )}
         </div>
-        
+
         <div className="modal-content">
           {loadingConnections ? (
             <div className="loading-connections">
@@ -166,7 +166,7 @@ const ConnectionsModal = ({
             <div className="connections-list">
               {connections.map(user => (
                 <div key={user.id} className="connection-card">
-                  <div 
+                  <div
                     className="connection-info"
                     onClick={() => {
                       navigateToProfile(user.id);
@@ -178,23 +178,23 @@ const ConnectionsModal = ({
                         <img src={user.profile_picture_url} alt={`${user.username}'s avatar`} />
                       ) : (
                         <div className="avatar-placeholder">
-                          {user.first_name && user.last_name 
-                            ? `${user.first_name[0]}${user.last_name[0]}` 
+                          {user.first_name && user.last_name
+                            ? `${user.first_name[0]}${user.last_name[0]}`
                             : user.username[0].toUpperCase()}
                         </div>
                       )}
                     </div>
                     <div className="connection-details">
                       <h4>
-                        {user.first_name || user.last_name 
+                        {user.first_name || user.last_name
                           ? `${user.first_name || ''} ${user.last_name || ''}`
                           : user.username}
                       </h4>
                       <div className="connection-actions">
                         {parseInt(user.id) !== currentUserId && (
                           user.is_following ? (
-                            <button 
-                              className="btn-unfollow" 
+                            <button
+                              className="btn-unfollow"
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 try {
@@ -208,8 +208,8 @@ const ConnectionsModal = ({
                               Unfollow
                             </button>
                           ) : (
-                            <button 
-                              className="btn-follow" 
+                            <button
+                              className="btn-follow"
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 try {
@@ -225,8 +225,8 @@ const ConnectionsModal = ({
                           )
                         )}
                         {parseInt(user.id) !== currentUserId && (
-                          <button 
-                            className="btn-message" 
+                          <button
+                            className="btn-message"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDirectMessage(user.id);
@@ -327,7 +327,7 @@ function Profile() {
   const [searchTerm, setSearchTerm] = useState('');
   const [followActionLoading, setFollowActionLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
-  
+
   // State for modals
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
   const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
@@ -336,7 +336,7 @@ function Profile() {
     imageUrl: null,
     imageType: null // 'profile' or 'cover'
   });
-  
+
   const fileInputRef = useRef(null);
   const coverInputRef = useRef(null);
   const navigate = useNavigate();
@@ -345,15 +345,15 @@ function Profile() {
   const handleApiError = (error, setErrorFunction) => {
     console.error('API error:', error);
     let errorMessage = 'An error occurred';
-    
+
     if (error.message) {
       errorMessage = error.message;
     } else if (typeof error === 'string') {
       errorMessage = error;
     }
-    
+
     setErrorFunction(errorMessage);
-    
+
     // Clear error after 5 seconds
     setTimeout(() => {
       setErrorFunction(null);
@@ -376,22 +376,22 @@ function Profile() {
         }
 
         let user;
-        
+
         // If userId is provided, we're viewing someone else's profile
         if (userId) {
           setIsOwnProfile(false);
-          
+
           // Fetch the user by ID
           const response = await fetch(`${getBaseUrl()}/api/v1/users/${userId}/`, {
             headers: {
               'Authorization': `Bearer ${authService.getToken()}`
             }
           });
-          
+
           if (!response.ok) {
             throw new Error('Failed to fetch user data');
           }
-          
+
           user = await response.json();
           setIsFollowing(user.is_following || false);
           setFollowersCount(user.followers_count || 0);
@@ -400,7 +400,7 @@ function Profile() {
           // Fetch the current user's data
           setIsOwnProfile(true);
           user = currentUser;
-          
+
           // Fetch followers/following counts
           try {
             const followersCount = await authService.getFollowersCount();
@@ -411,9 +411,9 @@ function Profile() {
             console.error('Error fetching counts:', countErr);
           }
         }
-        
+
         setUserData(user);
-        
+
         // Only set form data if it's the user's own profile
         if (!userId) {
           setFormData({
@@ -546,17 +546,17 @@ function Profile() {
     setLoading(true);
     try {
       await authService.updateProfile(formData);
-      
+
       // Upload profile image if one was selected
       if (profileImage) {
         await handleImageUpload();
       }
-      
+
       // Upload cover image if one was selected
       if (coverImage) {
         await handleCoverUpload();
       }
-      
+
       const updatedUser = await authService.getCurrentUser();
       setUserData(updatedUser);
       setIsEditing(false);
@@ -582,13 +582,13 @@ function Profile() {
       }
       return;
     }
-    
+
     try {
       setFollowActionLoading(true);
       console.log("Following user with ID:", userId);
       const result = await authService.followUser(userId);
       console.log("Follow result:", result);
-      
+
       // Update state with the response data
       setIsFollowing(result.user.is_following || true);
       setFollowersCount(result.user.followers_count);
@@ -604,13 +604,13 @@ function Profile() {
   // Handle unfollow action
   const handleUnfollow = async () => {
     if (followActionLoading) return;
-    
+
     try {
       setFollowActionLoading(true);
       console.log("Unfollowing user with ID:", userId);
       const result = await authService.unfollowUser(userId);
       console.log("Unfollow result:", result);
-      
+
       // Update state with the response data
       setIsFollowing(result.user.is_following || false);
       setFollowersCount(result.user.followers_count);
@@ -622,7 +622,7 @@ function Profile() {
       setFollowActionLoading(false);
     }
   };
-  
+
   // Handle direct messaging
   const handleDirectMessage = async (targetUserId) => {
     try {
@@ -635,7 +635,7 @@ function Profile() {
       handleApiError(err, setError);
     }
   };
-  
+
   // Open image viewer modal
   const openImageViewer = (imageUrl, imageType) => {
     if (imageUrl) {
@@ -655,7 +655,7 @@ function Profile() {
       imageType: null
     });
   };
-  
+
   // Open followers modal
   const openFollowersModal = () => {
     setSearchTerm('');
@@ -673,11 +673,11 @@ function Profile() {
   // Load connections when modal is opened
   const loadConnections = useCallback(async (type) => {
     if (type !== 'followers' && type !== 'following') return;
-    
+
     setLoadingConnections(true);
     try {
       let data;
-      
+
       if (isOwnProfile) {
         // For the current user's profile
         if (type === 'followers') {
@@ -691,29 +691,29 @@ function Profile() {
         // For other users' profiles, use the specific user ID
         const endpoint = type === 'followers' ? 'user_followers' : 'user_following';
         console.log(`Loading ${type} for user ID ${userId} using endpoint: ${endpoint}`);
-        
+
         const url = `${getBaseUrl()}/api/v1/users/${userId}/${endpoint}/${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`;
         console.log("Request URL:", url);
-        
+
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${authService.getToken()}`
           }
         });
-        
+
         console.log("Response status:", response.status);
-        
+
         if (!response.ok) {
           throw new Error(`Failed to load ${type}`);
         }
-        
+
         data = await response.json();
         console.log(`${type} data:`, data);
       }
-      
+
       // Handle paginated response
       const users = data.results ? data.results : Array.isArray(data) ? data : [];
-      
+
       if (type === 'followers') {
         setFollowers(users);
       } else {
@@ -732,7 +732,7 @@ function Profile() {
       setLoadingConnections(false);
     }
   }, [isOwnProfile, userId, searchTerm]);
-  
+
   // Handle navigation to a user's profile
   const navigateToProfile = (userId) => {
     navigate(`/profile/${userId}`);
@@ -752,12 +752,12 @@ function Profile() {
   return (
     <div className="profile-container">
       <div className="profile-header-section">
-        <div 
-          className="profile-cover" 
+        <div
+          className="profile-cover"
           style={
-            previewCoverImage || userData.cover_photo_url 
-            ? {backgroundImage: `url(${previewCoverImage || userData.cover_photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center'} 
-            : {}
+            previewCoverImage || userData.cover_photo_url
+              ? { backgroundImage: `url(${previewCoverImage || userData.cover_photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : {}
           }
           onClick={() => userData.cover_photo_url && !isEditing && openImageViewer(userData.cover_photo_url, 'cover')}
         >
@@ -793,17 +793,17 @@ function Profile() {
           />
           {isEditing && coverImage && (
             <div className="cover-upload-actions">
-              <button 
-                type="button" 
-                className="btn-icon" 
-                onClick={handleCoverUpload} 
+              <button
+                type="button"
+                className="btn-icon"
+                onClick={handleCoverUpload}
                 disabled={coverUploading}
               >
                 ✓ {coverUploading ? 'Uploading...' : 'Save Cover'}
               </button>
-              <button 
-                type="button" 
-                className="btn-icon btn-cancel" 
+              <button
+                type="button"
+                className="btn-icon btn-cancel"
                 onClick={cancelCoverUpload}
               >
                 ✕ Cancel
@@ -811,37 +811,37 @@ function Profile() {
             </div>
           )}
         </div>
-        
+
         <div className="profile-main-info">
           <div className="profile-image-container">
-            <div 
+            <div
               className="profile-image-wrapper"
               onClick={() => userData.profile_picture_url && !isEditing && openImageViewer(userData.profile_picture_url, 'profile')}
             >
               {previewImage || userData.profile_picture_url ? (
-                <img 
-                  src={previewImage || userData.profile_picture_url} 
-                  alt="Profile" 
-                  className="profile-image" 
+                <img
+                  src={previewImage || userData.profile_picture_url}
+                  alt="Profile"
+                  className="profile-image"
                 />
               ) : (
                 <div className="profile-image-placeholder">
                   <span className="avatar-text">
-                    {userData.first_name && userData.last_name 
-                      ? `${userData.first_name[0]}${userData.last_name[0]}` 
-                      : userData.username ? userData.username[0].toUpperCase() 
-                      : 'U'}
+                    {userData.first_name && userData.last_name
+                      ? `${userData.first_name[0]}${userData.last_name[0]}`
+                      : userData.username ? userData.username[0].toUpperCase()
+                        : 'U'}
                   </span>
                 </div>
               )}
-              
+
               {isEditing && (
                 <div className="profile-image-overlay" onClick={triggerFileInput}>
                   <span className="camera-icon">📷</span>
                   <span>Change Photo</span>
                 </div>
               )}
-              
+
               {userData.profile_picture_url && !isEditing && (
                 <div className="view-profile-image-overlay">
                   <span className="view-icon">👁️</span>
@@ -858,17 +858,17 @@ function Profile() {
             />
             {isEditing && profileImage && (
               <div className="image-upload-actions">
-                <button 
-                  type="button" 
-                  className="btn-icon" 
-                  onClick={handleImageUpload} 
+                <button
+                  type="button"
+                  className="btn-icon"
+                  onClick={handleImageUpload}
                   disabled={imageUploading}
                 >
                   ✓ {imageUploading ? 'Uploading...' : 'Save Photo'}
                 </button>
-                <button 
-                  type="button" 
-                  className="btn-icon btn-cancel" 
+                <button
+                  type="button"
+                  className="btn-icon btn-cancel"
                   onClick={cancelImageUpload}
                 >
                   ✕ Cancel
@@ -877,35 +877,35 @@ function Profile() {
             )}
           </div>
         </div>
-        
+
         <div className="profile-user-info">
           <div className="user-name-actions">
             <h2 className="user-name">
-              {userData.first_name || userData.last_name 
+              {userData.first_name || userData.last_name
                 ? `${userData.first_name || ''} ${userData.last_name || ''}`
                 : userData.username}
             </h2>
             {!isOwnProfile && !isEditing && parseInt(userId) !== currentUserId && (
               <div className="user-actions">
                 {isFollowing ? (
-                  <button 
-                    className="btn-unfollow" 
+                  <button
+                    className="btn-unfollow"
                     onClick={handleUnfollow}
                     disabled={followActionLoading}
                   >
                     {followActionLoading ? 'Processing...' : 'Unfollow'}
                   </button>
                 ) : (
-                  <button 
-                    className="btn-follow" 
+                  <button
+                    className="btn-follow"
                     onClick={handleFollow}
                     disabled={followActionLoading}
                   >
                     {followActionLoading ? 'Processing...' : 'Follow'}
                   </button>
                 )}
-                <button 
-                  className="btn-message" 
+                <button
+                  className="btn-message"
                   onClick={() => handleDirectMessage(userId)}
                 >
                   Message
@@ -916,7 +916,7 @@ function Profile() {
           <div className="user-badges">
             {userData.is_event_organizer && <span className="user-badge organizer">Event Organizer</span>}
             {userData.is_venue_owner && <span className="user-badge venue-owner">Venue Owner</span>}
-            {!userData.is_event_organizer && !userData.is_venue_owner && 
+            {!userData.is_event_organizer && !userData.is_venue_owner &&
               <span className="user-badge standard">Standard User</span>}
           </div>
           {(isOwnProfile || (!isOwnProfile && (followersCount !== undefined || followingCount !== undefined))) && (
@@ -941,7 +941,7 @@ function Profile() {
             <button onClick={() => setError(null)} className="error-dismiss">×</button>
           </div>
         )}
-        
+
         {isEditing ? (
           <form onSubmit={handleSubmit} className="profile-form">
             <div className="form-section">
@@ -986,31 +986,31 @@ function Profile() {
                 onChange={handleChange}
                 type="tel"
               />
-              <InputField 
-                label="Address" 
-                name="profile_address" 
-                value={formData.profile.address} 
-                onChange={handleChange} 
+              <InputField
+                label="Address"
+                name="profile_address"
+                value={formData.profile.address}
+                onChange={handleChange}
               />
-              
+
               <div className="form-row">
-                <InputField 
-                  label="City" 
-                  name="profile_city" 
-                  value={formData.profile.city} 
-                  onChange={handleChange} 
+                <InputField
+                  label="City"
+                  name="profile_city"
+                  value={formData.profile.city}
+                  onChange={handleChange}
                 />
-                <InputField 
-                  label="State" 
-                  name="profile_state" 
-                  value={formData.profile.state} 
-                  onChange={handleChange} 
+                <InputField
+                  label="State"
+                  name="profile_state"
+                  value={formData.profile.state}
+                  onChange={handleChange}
                 />
-                <InputField 
-                  label="ZIP Code" 
-                  name="profile_zip_code" 
-                  value={formData.profile.zip_code} 
-                  onChange={handleChange} 
+                <InputField
+                  label="ZIP Code"
+                  name="profile_zip_code"
+                  value={formData.profile.zip_code}
+                  onChange={handleChange}
                 />
               </div>
             </div>
@@ -1043,7 +1043,7 @@ function Profile() {
                 <div className="info-row">
                   <div className="info-label">Full Name</div>
                   <div className="info-value">
-                    {userData.first_name || userData.last_name 
+                    {userData.first_name || userData.last_name
                       ? `${userData.first_name || ''} ${userData.last_name || ''}`
                       : 'Not provided'}
                   </div>
@@ -1061,7 +1061,7 @@ function Profile() {
                   <div className="info-value">
                     {userData.is_event_organizer && <span className="user-badge organizer">Event Organizer</span>}
                     {userData.is_venue_owner && <span className="user-badge venue-owner">Venue Owner</span>}
-                    {!userData.is_event_organizer && !userData.is_venue_owner && 
+                    {!userData.is_event_organizer && !userData.is_venue_owner &&
                       <span className="user-badge standard">Standard User</span>}
                   </div>
                 </div>
@@ -1071,14 +1071,14 @@ function Profile() {
                 </div>
               </div>
             </div>
-            
+
             <div className="profile-card-section">
               <h3>Bio</h3>
               <div className="profile-bio">
                 {userData.bio || 'No bio provided yet.'}
               </div>
             </div>
-            
+
             <div className="profile-card-section">
               <h3>Contact Information</h3>
               <div className="profile-info-table">
@@ -1107,7 +1107,7 @@ function Profile() {
           </div>
         )}
       </div>
-      
+
       {/* Followers Modal */}
       <ConnectionsModal
         isOpen={isFollowersModalOpen}
@@ -1125,7 +1125,7 @@ function Profile() {
         followersCount={followersCount}
         followingCount={followingCount}
       />
-      
+
       {/* Following Modal */}
       <ConnectionsModal
         isOpen={isFollowingModalOpen}
@@ -1143,7 +1143,7 @@ function Profile() {
         followersCount={followersCount}
         followingCount={followingCount}
       />
-      
+
       {/* Image Viewer Modal */}
       <ImageViewerModal
         isOpen={viewImageModal.isOpen}

@@ -145,11 +145,46 @@ function App() {
           }
         />
         <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/faq" element={<FAQs />} />
-        <Route path="/terms" element={<Terms />} />
+        <Route
+          path="/about"
+          element={
+            <Layout>
+              <About />
+            </Layout>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <Layout>
+              <Contact />
+            </Layout>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <Layout>
+              <Terms />
+            </Layout>
+          }
+        />
+        <Route
+          path="/privacy"
+          element={
+            <Layout>
+              <Privacy />
+            </Layout>
+          }
+        />
+        <Route
+          path="/faq"
+          element={
+            <Layout>
+              <FAQs />
+            </Layout>
+          }
+        />
 
         {/* Venue routes */}
         <Route
@@ -235,7 +270,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Route for viewing other user profiles */}
         <Route
           path="/profile/:userId"
