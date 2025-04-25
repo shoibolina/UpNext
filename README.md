@@ -139,44 +139,85 @@ https://cs540group3.atlassian.net/jira/software/projects/SCRUM/boards/1
    pip install -r requirements.txt
    ```
 
-4. Configure the database in `upnext/settings.py`:
+4. Ensure PostreSQL is installed & create a database in your terminal 
+   - Can be found here: https://www.postgresql.org/download/
+   - Run the following commands in a terminal to create a database:
+   ```bash
+   psql -U your_username
+   CREATE DATABASE your_DB_name;
+   ```
+
+5. Configure the database based on the layout of `upnext/settings.py`. Create a .env file if you do not have one already, and then set all 5 variables below to your database settings (i.e.)
    ```python
    DATABASES = {
        'default': {
-           'ENGINE': 'django.db.backends.postgresql',
-           'NAME': 'upnext',  # Your DB name
-           'USER': 'username',  # Your DB user
-           'PASSWORD': 'password',  # Your DB password
-           'HOST': 'localhost',
-           'PORT': '5432',
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config("DB_NAME"), # Replace with your database name
+            "USER": config("DB_USER"),  # Replace with your database user
+            "PASSWORD": config("DB_PASSWORD"),  # Replace with your database password
+            "HOST": config("DB_HOST"), # To run locally, use localhost
+            "PORT": config("DB_PORT"), # To run locally, use 5432
        }
    }
+
+   # -- Your .env file should have variables set like this:
+   DB_NAME=database_name
    ```
 
-5. Apply migrations:
+7. Follow the instructions to setup email functionality for password reset [here](#email-integration), then return to continue to the next step
+
+8. Apply migrations:
    ```bash
    python manage.py migrate
    ```
 
-6. Create a superuser:
+9. Create a superuser:
    ```bash
    python manage.py createsuperuser
    ```
 
-7. Initialize sample data:
+10. Initialize sample data:
    ```bash
    python manage.py init_data
    ```
 
-8. Run the development server to launch the backend:
+11. Run the development server to launch the backend:
    ```bash
    python manage.py runserver
    ```
 
-9. In a new terminal, navigate the the frontend folder and use the following command to launch the frontend:
+12. In a new terminal, navigate the the frontend folder and use the following command to launch the frontend:
    ```bash
    npm start
    ```
+
+## Email Integration
+
+To enable email functionality such as password reset, follow these steps to set up the Resend API:
+
+### Step 1: Get Your API Key
+
+- Visit the Resend API keys page: [https://resend.com/api-keys](https://resend.com/api-keys)
+- Log in or sign up for a free account.
+
+### Step 2: Create an API Key
+
+- Click **“Create API Key”**
+- Give your key a meaningful name (e.g., `UpNext Dev` or `Password Reset Key`)
+- Select the access level:
+  - **Full Access** – recommended for most use cases
+  - **Limited Access** – for read-only or scoped usage (optional)
+
+### Step 3: Copy the API Key
+
+- After generating the key, **copy it** for use in your environment setup.
+
+### Step 4: Add the Key to Your Project
+
+- Open your project's `.env` file and add the following line:
+
+  ```env
+  RESEND_API_KEY=re_your_actual_key_here
 
 The app should now be usable locally.
 
@@ -212,68 +253,3 @@ You can access the Swagger documentation of the API at:
 - `GET /api/v1/venues/{id}/` - Retrieve a venue
 - `POST /api/v1/venues/{id}/bookings/` - Book a venue
 - `POST /api/v1/venues/{id}/reviews/` - Review a venue
-
-## Peer Tasks
-Create a Check-In System for events & users (Functionalities do not have to be limited to those suggested below)
--Visual updates to the front end (Option to cancel check-in, Updates to user dashboard for events requiring check-in )
--Page for event owner to see who has checked in
--Individual ID or QR code type verification (like CORQ)
--Additional option added to event creation for events that require check-in (check-in time start & end)
--Disable check in button after the time has passed
-# Sprint 4 Implementation Tasks (choose any five that you guys find it easier to do)
-
-## Task 1: Real-Time Messaging System
-Implementation of a comprehensive messaging system allowing users and event organizers to communicate directly through the platform with real-time capabilities.
-
-Key Features:
-- Direct messaging between users and event organizers
-- Real-time message delivery using WebSockets
-- Typing indicators and read receipts
-- Notification system for new messages
-- Conversation threading and search functionality
-
-## Task 2: User Following Functionality
-Implementation of social features enabling users to follow other users and receive updates about events their connections are attending or organizing.
-
-Key Features:
-- Follow/unfollow capability for all users
-- Activity feed showing events from followed users
-- Notification system for followed user activities
-- Profile sections displaying followers and following lists
-- User suggestion system
-
-## Task 3: Media Upload System
-Implementation of a comprehensive media upload system for user profiles, events, and venues that handles storage, optimization, and display.
-
-Key Features:
-- Profile picture upload and management
-- Multiple image uploads for events and venues
-- Gallery management with optimization for different display contexts
-- Secure storage and retrieval with proper access control
-
-## Task 4: Advanced Search and Filtering System
-Implementation of a powerful search and filtering system enabling users to find events and venues matching specific criteria with high precision.
-
-Key Features:
-- Full-text search across multiple models (events, venues)
-- Multiple filter options (date, category, location, price)
-- Customizable sorting capabilities
-- Search history and saved searches for logged-in users
-
-## Task 5: Event Calendar and Schedule Management
-Implementation of a comprehensive calendar system allowing users to view and manage their event schedule, with integration to external calendar services.
-
-Key Features:
-- Personal event calendar showing registered events
-- Multiple calendar views (day, week, month)
-- Calendar export functionality (iCal, Google Calendar)
-- Event reminders and conflict detection
-- Recurring event support
-
-## Task 6: make the ui consistent across all the pages
-
-
-## Task 7: create a dashboard for event analytics for organizers
-## Task 8: add share event functionality
-## Task 9: build a calener view for upcoming events
-## Task 10: implement event bookmarking like show all the favorite events in a page
