@@ -270,6 +270,36 @@ Key Features:
 - Event reminders and conflict detection
 - Recurring event support
 
+
+## Email Integration
+
+To enable email functionality such as password reset, follow these steps to set up the Resend API:
+
+### Step 1: Get Your API Key
+
+- Visit the Resend API keys page: [https://resend.com/api-keys](https://resend.com/api-keys)
+- Log in or sign up for a free account.
+
+### Step 2: Create an API Key
+
+- Click **“Create API Key”**
+- Give your key a meaningful name (e.g., `UpNext Dev` or `Password Reset Key`)
+- Select the access level:
+  - **Full Access** – recommended for most use cases
+  - **Limited Access** – for read-only or scoped usage (optional)
+
+### Step 3: Copy the API Key
+
+- After generating the key, **copy it** for use in your environment setup.
+
+### Step 4: Add the Key to Your Project
+
+- Open your project's `.env` file and add the following line:
+
+  ```env
+  RESEND_API_KEY=re_your_actual_key_here
+
+
 ## Task 6: make the ui consistent across all the pages
 
 
